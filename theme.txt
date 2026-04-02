@@ -1,0 +1,187 @@
+THEME NAME: Nexus Cyber Glass UI
+
+---
+
+1. CORE STYLE
+
+* Dark futuristic UI
+* Cyberpunk-inspired but controlled (not over-glowy chaos)
+* Glassmorphism + neon accents
+* Smooth, premium feel (not corporate, not childish)
+
+---
+
+2. COLOR SYSTEM
+
+Background:
+
+* Primary: #03050b (deep black-blue)
+* Secondary: #0a0f1e (dark navy gradient)
+* Overlay: rgba(12, 18, 32, 0.55)
+
+Accent Colors:
+
+* Neon Cyan: #00ccff / #0cf
+* Soft Blue: #8aa6e0
+* Glow Cyan: rgba(0, 204, 255, 0.6)
+
+Status Colors:
+
+* Success (Done): #00ff99 (or soft green)
+* Warning (Pending): #ffcc00
+* Error (Issue): #ff3366
+
+Text:
+
+* Primary: #eef5ff
+* Secondary: #b0c4ff
+* Muted: #7f8ea3
+
+---
+
+3. TYPOGRAPHY
+
+* Font Family:
+
+  * Primary: Inter
+  * Secondary: Poppins
+
+* Style:
+
+  * Clean, modern
+  * Slight letter-spacing
+  * Bold headings with gradient text
+
+---
+
+4. UI COMPONENT STYLE
+
+Cards:
+
+* Glass effect:
+
+  * background: rgba(12, 18, 32, 0.55)
+  * backdrop-filter: blur(10px–15px)
+* Border:
+
+  * 1px solid rgba(0,255,255,0.2)
+* Border radius:
+
+  * 1.5rem – 2rem
+* Shadow:
+
+  * soft + glow mix
+
+Inputs:
+
+* Rounded (1rem+)
+* Dark background
+* Neon focus glow
+* Floating labels
+
+Buttons:
+
+* Gradient background (dark blue → cyan)
+* Hover:
+
+  * glow + slight scale (1.02)
+* Active:
+
+  * scale down (0.98)
+* Ripple effect on click
+
+Badges:
+
+* Rounded pill style
+* Color-coded (status-based)
+
+---
+
+5. ANIMATIONS
+
+Global:
+
+* Fade-in on page load
+
+Components:
+
+* Slide-up cards
+* Hover scale (subtle)
+* Glow on focus
+* Button ripple effect
+
+Background:
+
+* Moving grid (slow animation)
+* Floating particles (low opacity)
+* Gradient shift (very subtle)
+
+---
+
+6. LAYOUT PRINCIPLES
+
+* Centered content or grid layout
+* Spacious padding
+* No clutter
+* Use cards instead of tables
+
+---
+
+7. INTERACTION STYLE
+
+* Smooth transitions (0.2s–0.4s)
+
+* Micro-interactions:
+
+  * hover glow
+  * input focus animation
+  * button feedback
+
+* Feedback:
+
+  * animated error messages
+  * loading spinner in buttons
+
+---
+
+8. UX FEATURES
+
+* Floating labels for inputs
+* Show/hide password toggle
+* Remember me option
+* Inline error display
+* Loading state on actions
+
+---
+
+9. RESPONSIVENESS
+
+* Mobile-first
+* Flexible card widths
+* Stack layout on small screens
+* Maintain center alignment
+
+---
+
+10. DESIGN PHILOSOPHY
+
+* “Futuristic but usable”
+* “Visually rich but not distracting”
+* “Feels premium, not gimmicky”
+
+---
+
+USAGE INSTRUCTION:
+
+When applying this theme:
+
+* Use glass cards everywhere
+* Use neon cyan as primary accent
+* Avoid plain black/white UI
+* Always include subtle animation
+* Prefer cards/grid over tables
+* Maintain consistent glow + blur styling
+
+---
+
+END

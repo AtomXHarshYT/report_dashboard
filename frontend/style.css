@@ -1,0 +1,181 @@
+body {
+    font-family: 'Inter', 'Poppins', Arial, sans-serif;
+    padding: 20px;
+    background: radial-gradient(circle at 20% 30%, #03050b, #020408);
+    color: #eef5ff;
+    position: relative;
+    min-height: 100vh;
+}
+
+/* Animated grid background */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: linear-gradient(rgba(0, 204, 255, 0.05) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(0, 204, 255, 0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: -1;
+    animation: driftGrid 40s linear infinite;
+}
+
+@keyframes driftGrid {
+    0% { background-position: 0 0; }
+    100% { background-position: 40px 40px; }
+}
+
+input {
+    margin: 5px;
+    padding: 10px 12px;
+    background: rgba(0, 5, 15, 0.7);
+    border: 1px solid rgba(0, 204, 255, 0.3);
+    border-radius: 12px;
+    color: #eef5ff;
+    font-family: 'Inter', Arial, sans-serif;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+input:focus {
+    border-color: #00ccff;
+    box-shadow: 0 0 10px rgba(0, 204, 255, 0.5);
+    background: rgba(5, 12, 22, 0.9);
+}
+
+input::placeholder {
+    color: #7f8ea3;
+}
+
+button {
+    padding: 8px 16px;
+    cursor: pointer;
+    background: linear-gradient(95deg, #0a1122, #071126);
+    border: 1px solid rgba(0, 204, 255, 0.5);
+    color: #ccf4ff;
+    border-radius: 24px;
+    font-weight: 600;
+    font-family: 'Inter', Arial, sans-serif;
+    font-size: 13px;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+button:hover {
+    background: linear-gradient(95deg, #0f1b3a, #0a1430);
+    border-color: #00ccff;
+    box-shadow: 0 0 12px rgba(0, 204, 255, 0.5);
+    transform: scale(1.02);
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+/* Ripple effect on buttons */
+button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(0, 204, 255, 0.4);
+    transform: translate(-50%, -50%);
+    transition: width 0.4s, height 0.4s;
+}
+
+button:active::after {
+    width: 200px;
+    height: 200px;
+}
+
+table {
+    width: 100%;
+    margin-top: 20px;
+    background: rgba(12, 18, 32, 0.45);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    overflow: hidden;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    color: #eef5ff;
+}
+
+th {
+    background: rgba(0, 204, 255, 0.15);
+    color: #00ccff;
+    font-weight: 600;
+    font-family: 'Poppins', Arial, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 12px;
+    border-bottom: 1px solid rgba(0, 204, 255, 0.3);
+}
+
+td {
+    border-bottom: 1px solid rgba(0, 204, 255, 0.1);
+}
+
+tr:hover {
+    background: rgba(0, 204, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+/* Page fade-in animation */
+@keyframes fadeInGlobal {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+body {
+    animation: fadeInGlobal 0.6s ease;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(12, 18, 32, 0.8);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #00ccff;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #00aaff;
+}
+
+/* Select dropdown styling */
+select {
+    margin: 5px;
+    padding: 10px 12px;
+    background: rgba(0, 5, 15, 0.7);
+    border: 1px solid rgba(0, 204, 255, 0.3);
+    border-radius: 12px;
+    color: #eef5ff;
+    font-family: 'Inter', Arial, sans-serif;
+    cursor: pointer;
+}
+
+select:focus {
+    border-color: #00ccff;
+    box-shadow: 0 0 10px rgba(0, 204, 255, 0.5);
+}

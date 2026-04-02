@@ -1,0 +1,166 @@
+PROJECT: Advanced Ticket Dashboard System
+
+---
+
+1. PHASE 1 — CORE SETUP
+
+* Backend (FastAPI)
+* Database (Supabase PostgreSQL)
+* Basic tickets CRUD
+* Frontend (HTML + JS)
+* Display tickets in table
+
+STATUS: ✅ DONE
+
+---
+
+2. PHASE 2 — USER SYSTEM (AUTH)
+
+* Create users table:
+
+  * id (uuid)
+  * employee_id
+  * password
+  * name
+  * role (admin / user)
+
+* Replace hardcoded login
+
+* Login using employee_id + password
+
+* Store session in localStorage
+
+* Auto login (no repeated login)
+
+* Logout functionality
+
+STATUS: 🔜 NEXT
+
+---
+
+3. PHASE 3 — ROLE-BASED SYSTEM
+
+* Add user_id in tickets table
+* While creating ticket:
+
+  * store logged-in user_id
+
+USER:
+
+* See only own tickets
+* Perform CRUD only on own data
+
+ADMIN:
+
+* See all tickets
+* Can edit/delete any ticket
+
+STATUS: 🔜
+
+---
+
+4. PHASE 4 — DASHBOARD UI IMPROVEMENT
+
+* Show user name (top right)
+* Add logout button
+* Add refresh button
+* Convert form into popup (modal)
+* Clean table UI
+
+STATUS: 🔜
+
+---
+
+5. PHASE 5 — TICKET STRUCTURE UPDATE
+
+* ticket_id becomes optional
+
+* Support entries without ticket_id
+
+* Keep:
+
+  * rest_ids (array)
+  * vendor_ids (array)
+  * remarks (array)
+
+* Status dropdown:
+
+  * Done
+  * Pending
+  * Issue
+
+STATUS: 🔜
+
+---
+
+6. PHASE 6 — FILTERS & SEARCH
+
+* Search by:
+
+  * ticket_id
+  * rest_id
+  * vendor_id
+
+* Filter by:
+
+  * date
+  * status
+
+* Modern UI filtering
+
+STATUS: 🔜
+
+---
+
+7. PHASE 7 — EXPORT FEATURE
+
+* Export visible table data:
+
+  * Copy format (for WhatsApp/report)
+  * TXT format output
+
+STATUS: 🔜
+
+---
+
+8. PHASE 8 — ADMIN ADVANCED CONTROL
+
+* Admin can:
+
+  * Control field visibility (optional)
+  * Customize dashboard columns per user
+
+STATUS: 🔜 (Advanced)
+
+---
+
+9. PHASE 9 — FINAL POLISH
+
+* Better UI (Tailwind optional)
+* Pagination (if data grows)
+* Error handling improvements
+* Loading states
+
+STATUS: 🔜
+
+---
+
+10. FINAL SYSTEM FLOW
+
+Login → Session stored → Dashboard loads
+
+User:
+
+* sees own data
+* performs CRUD
+
+Admin:
+
+* sees all data
+* controls system
+
+Frontend → FastAPI → PostgreSQL
+
+---
+
+END

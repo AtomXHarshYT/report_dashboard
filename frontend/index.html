@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Daily Report | Ticket Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --bg-main: radial-gradient(circle at 10% 20%, #03050b, #020408);
+            --bg-card: rgba(12, 18, 32, 0.65);
+            --bg-input: rgba(3, 5, 11, 0.7);
+            --bg-header: rgba(12, 18, 32, 0.55);
+            --border: rgba(0, 255, 255, 0.25);
+            --border-focus: rgba(0, 204, 255, 1);
+            --text-1: #eef5ff;
+            --text-2: #8aa6e0;
+            --text-3: #7f8ea3;
+            --accent: #0cf;
+            --accent-glow: rgba(0, 204, 255, 0.4);
+            --shadow: rgba(0, 0, 0, 0.4);
+            --grid-color: rgba(0, 204, 255, 0.08);
+            --particle-color: rgba(0, 204, 255, 0.2);
+            --label-bg: #0a0f1e;
+            --tag-bg: rgba(0, 204, 255, 0.15);
+            --remark-bg: rgba(0,0,0,0.3);
+            --empty-bg: rgba(12,18,32,0.4);
+            --modal-overlay: rgba(0, 0, 0, 0.85);
+            --modal-bg: rgba(12, 18, 32, 0.95);
+            --toast-bg: rgba(12,18,32,0.95);
+            --done: #00ff99;
+            --pending: #ffcc00;
+            --issue: #ff3366;
+            --bulk-bg: rgba(12, 18, 32, 0.95);
+        }
+        body.light-mode {
+            --bg-main: radial-gradient(circle at 10% 20%, #e8f0ff, #f0f4ff);
+            --bg-card: rgba(255, 255, 255, 0.7);
+            --bg-input: rgba(230, 240, 255, 0.9);
+            --bg-header: rgba(255, 255, 255, 0.65);
+            --border: rgba(0, 100, 200, 0.2);
+            --border-focus: rgba(0, 100, 200, 0.8);
+            --text-1: #1a2a4a;
+            --text-2: #5a7aaa;
+            --text-3: #8a9ab0;
+            --accent: #0088cc;
+            --accent-glow: rgba(0, 136, 204, 0.25);
+            --shadow: rgba(0, 0, 0, 0.08);
+            --grid-color: rgba(0, 100, 200, 0.05);
+            --particle-color: rgba(0, 136, 204, 0.12);
+            --label-bg: #f0f4ff;
+            --tag-bg: rgba(0, 136, 204, 0.1);
+            --remark-bg: rgba(0,0,0,0.04);
+            --empty-bg: rgba(255,255,255,0.5);
+            --modal-overlay: rgba(255, 255, 255, 0.7);
+            --modal-bg: rgba(255, 255, 255, 0.97);
+            --toast-bg: rgba(255,255,255,0.97);
+            --bulk-bg: rgba(255,255,255,0.97);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', 'Poppins', sans-serif;
+            background: var(--bg-main);
+            min-height: 100vh;
+            color: var(--text-1);
+            padding: 1.5rem;
+            position: relative;
+            overflow-x: hidden;
+            animation: fadeInGlobal 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            transition: background 0.4s, color 0.4s;
+        }
+        .bg-grid {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: linear-gradient(var(--grid-color) 1px, transparent 1px), linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none; z-index: 0;
+            animation: gridShift 20s linear infinite;
+        }
+        @keyframes gridShift { 0%{transform:translate(0,0)} 100%{transform:translate(50px,50px)} }
+        .floating-particles { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0; }
+        .particle {
+            position: absolute; background: var(--particle-color); border-radius: 50%;
+            filter: blur(3px); animation: floatP 12s infinite alternate ease-in-out;
+        }
+        @keyframes floatP { 0%{transform:translateY(0) translateX(0);opacity:0.2} 100%{transform:translateY(-40px) translateX(20px);opacity:0.5} }
+        .dashboard-container { max-width:1440px; margin:0 auto; position:relative; z-index:2; }
+
+        /* Header */
+        .glass-header {
+            background: var(--bg-header); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+            border: 1px solid var(--border); border-radius: 2rem; padding: 1rem 2rem; margin-bottom: 1.5rem;
+            display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem;
+            box-shadow: 0 15px 35px var(--shadow), 0 0 8px var(--accent-glow);
+            transition: background 0.4s, border 0.4s;
+        }
+        .logo-area h1 {
+            font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 1.6rem;
+            background: linear-gradient(135deg, var(--text-1), var(--accent));
+            background-clip: text; -webkit-background-clip: text; color: transparent;
+        }
+        .logo-area p { font-size: 0.78rem; color: var(--text-2); letter-spacing: 1px; }
+        .user-actions { display:flex; gap:0.8rem; align-items:center; flex-wrap:wrap; }
+        #username {
+            font-weight:600; background: var(--tag-bg); padding:0.45rem 1.1rem; border-radius:2rem;
+            border-left:2px solid var(--accent); font-size:0.85rem;
+        }
+        .role-badge { background:var(--tag-bg); padding:0.25rem 0.9rem; border-radius:2rem; font-size:0.72rem; color:var(--accent); }
+
+        /* Buttons */
+        .btn-cyber {
+            background: linear-gradient(95deg, #0a0f1e, #071126); border: 1px solid var(--border);
+            padding: 0.55rem 1.1rem; border-radius: 2rem; font-weight: 600; font-family: 'Inter'; font-size: 0.82rem;
+            color: var(--text-2); cursor: pointer; transition: all 0.25s; backdrop-filter: blur(4px);
+            display: inline-flex; align-items: center; gap: 7px;
+        }
+        .btn-cyber i { font-size:0.85rem; }
+        .btn-cyber:hover { transform:scale(1.02); border-color:var(--accent); box-shadow:0 0 12px var(--accent-glow); color:var(--text-1); }
+        .btn-cyber:active { transform:scale(0.97); }
+        .btn-primary { border-color:var(--accent); color:var(--accent); font-weight:700; }
+        .btn-danger { border-color:var(--issue); color:var(--issue); }
+        .btn-danger:hover { box-shadow:0 0 12px rgba(255,51,102,0.4); }
+        .btn-sm { padding:0.4rem 0.9rem; font-size:0.78rem; }
+        .btn-icon { padding:0.5rem; width:36px; height:36px; justify-content:center; border-radius:50%; }
+
+        body.light-mode .btn-cyber { background: linear-gradient(95deg, #f0f4ff, #e4ecff); }
+        body.light-mode .btn-primary { color: var(--accent); }
+        body.light-mode .btn-danger { color: var(--issue); }
+
+        /* Stats */
+        .stats-section { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:1rem; margin-bottom:1.5rem; }
+        .stat-card {
+            background: var(--bg-card); backdrop-filter:blur(12px); border:1px solid var(--border);
+            border-radius:1.4rem; padding:1.2rem; text-align:center; transition:all 0.3s;
+            box-shadow: 0 6px 16px var(--shadow); position:relative; overflow:hidden;
+        }
+        .stat-card:hover { transform:translateY(-3px); box-shadow:0 12px 24px var(--shadow); }
+        .stat-card .stat-icon { font-size:1.6rem; margin-bottom:0.4rem; }
+        .stat-card .stat-num { font-family:'Poppins'; font-size:2rem; font-weight:700; }
+        .stat-card .stat-label { font-size:0.75rem; color:var(--text-3); text-transform:uppercase; letter-spacing:1px; margin-top:0.2rem; }
+        .stat-total .stat-icon, .stat-total .stat-num { color:var(--accent); }
+        .stat-done .stat-icon, .stat-done .stat-num { color:var(--done); }
+        .stat-pending .stat-icon, .stat-pending .stat-num { color:var(--pending); }
+        .stat-issue .stat-icon, .stat-issue .stat-num { color:var(--issue); }
+        .stat-card::after {
+            content:''; position:absolute; top:0; left:0; width:100%; height:3px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity:0.5;
+        }
+        .stat-done::after { background: linear-gradient(90deg, transparent, var(--done), transparent); }
+        .stat-pending::after { background: linear-gradient(90deg, transparent, var(--pending), transparent); }
+        .stat-issue::after { background: linear-gradient(90deg, transparent, var(--issue), transparent); }
+        .stats-toggle {
+            display:flex; gap:0; border-radius:1rem; overflow:hidden; border:1px solid var(--border);
+            width:fit-content; margin:0 auto 0.5rem;
+        }
+        .stats-toggle button {
+            background:var(--bg-input); border:none; padding:0.3rem 0.9rem; font-family:'Inter'; font-size:0.7rem;
+            color:var(--text-3); cursor:pointer; transition:0.2s; font-weight:600;
+        }
+        .stats-toggle button.active { background:var(--accent); color:#000; }
+
+        /* Filters */
+        .filter-section {
+            background: var(--bg-card); backdrop-filter:blur(12px); border:1px solid var(--border);
+            border-radius:1.6rem; padding:1.2rem; margin-bottom:1.5rem;
+            box-shadow: 0 6px 16px var(--shadow); transition: all 0.4s;
+        }
+        .filter-row { display:flex; flex-wrap:wrap; gap:0.7rem; align-items:center; }
+        .filter-row + .filter-row { margin-top:0.7rem; }
+        .filter-input {
+            flex:2; min-width:200px; background:var(--bg-input); border:1px solid var(--border);
+            border-radius:1.2rem; padding:0.6rem 1rem; color:var(--text-1); font-family:'Inter'; font-size:0.82rem;
+            outline:none; transition:all 0.2s;
+        }
+        .filter-input:focus { border-color:var(--accent); box-shadow:0 0 8px var(--accent-glow); }
+        .filter-select {
+            background:var(--bg-input); border:1px solid var(--border); border-radius:1.2rem;
+            padding:0.6rem 0.8rem; color:var(--text-1); font-family:'Inter'; font-size:0.82rem;
+            outline:none; cursor:pointer; transition:0.2s;
+        }
+        .filter-select:focus { border-color:var(--accent); }
+        .filter-select option { background:#0a0f1e; color:#eef5ff; }
+        body.light-mode .filter-select option { background:#f0f4ff; color:#1a2a4a; }
+        .filter-label { font-size:0.72rem; color:var(--text-3); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; }
+        .filter-date { background:var(--bg-input); border:1px solid var(--border); border-radius:1.2rem; padding:0.6rem 0.7rem; color:var(--text-1); font-family:'Inter'; font-size:0.82rem; outline:none; transition:0.2s; }
+        .filter-date:focus { border-color:var(--accent); }
+        .auto-refresh-btn.active { border-color:var(--done); color:var(--done); box-shadow:0 0 8px rgba(0,255,153,0.3); }
+        .auto-refresh-btn.active .pulse-dot { display:inline-block; }
+        .pulse-dot { display:none; width:6px; height:6px; background:var(--done); border-radius:50%; animation:pulse 1.5s infinite; margin-left:4px; vertical-align:middle; }
+        @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(1.5)} }
+        .select-all-wrap { display:flex; align-items:center; gap:0.4rem; cursor:pointer; font-size:0.78rem; color:var(--text-3); }
+
+        /* Custom Checkbox */
+        .cyber-check { display:flex; align-items:center; cursor:pointer; }
+        .cyber-check input { display:none; }
+        .cyber-check .mark {
+            width:17px; height:17px; border:2px solid var(--border); border-radius:4px;
+            display:flex; align-items:center; justify-content:center; transition:0.2s; flex-shrink:0;
+        }
+        .cyber-check input:checked + .mark { background:var(--accent); border-color:var(--accent); }
+        .cyber-check input:checked + .mark::after { content:'✓'; color:#000; font-size:11px; font-weight:700; }
+
+        /* Form */
+        .glass-form-card {
+            background:var(--bg-card); backdrop-filter:blur(12px); border:1px solid var(--border);
+            border-radius:1.8rem; padding:1.5rem; margin-bottom:1.5rem; transition:all 0.3s;
+            box-shadow:0 8px 20px var(--shadow);
+        }
+        .form-grid { display:flex; flex-wrap:wrap; gap:1rem; align-items:flex-end; }
+        .input-group { flex:1 1 170px; position:relative; }
+        .input-group input, .input-group select, .input-group textarea {
+            width:100%; background:var(--bg-input); border:1px solid var(--border); border-radius:1.2rem;
+            padding:0.75rem 1rem; font-family:'Inter',monospace; font-size:0.82rem; color:var(--text-1);
+            transition:all 0.2s; outline:none;
+        }
+        .input-group textarea { resize:vertical; min-height:55px; }
+        .input-group input:focus, .input-group select:focus, .input-group textarea:focus { border-color:var(--accent); box-shadow:0 0 10px var(--accent-glow); }
+        .input-group label {
+            position:absolute; left:1rem; top:-0.55rem; background:var(--label-bg); padding:0 0.4rem;
+            font-size:0.68rem; color:var(--text-3); letter-spacing:0.5px; border-radius:20px;
+        }
+        .input-group select option { background:#0a0f1e; color:#eef5ff; }
+        body.light-mode .input-group select option { background:#f0f4ff; color:#1a2a4a; }
+
+        /* Ticket Cards */
+        .tickets-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(350px,1fr)); gap:1.3rem; margin-top:0; }
+        .ticket-card {
+            background:var(--bg-card); backdrop-filter:blur(12px); border-radius:1.5rem;
+            border:1px solid var(--border); padding:1.1rem; transition:all 0.25s; position:relative;
+            box-shadow:0 6px 16px var(--shadow);
+        }
+        .ticket-card:hover { transform:translateY(-4px) scale(1.005); border-color:rgba(0,204,255,0.5); box-shadow:0 14px 28px var(--accent-glow); }
+        .ticket-card.selected { border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-glow); }
+        .card-top { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; border-bottom:1px dashed rgba(0,204,255,0.25); padding-bottom:0.5rem; margin-bottom:0.6rem; }
+        .card-top-left { display:flex; align-items:center; gap:0.6rem; }
+        .ticket-id { font-family:monospace; font-weight:700; background:rgba(0,0,0,0.3); padding:0.2rem 0.7rem; border-radius:2rem; font-size:0.78rem; color:var(--accent); }
+        body.light-mode .ticket-id { background:rgba(0,0,0,0.06); }
+        .ticket-date { font-size:0.68rem; color:var(--text-3); }
+        .status-badge {
+            display:inline-flex; align-items:center; gap:4px; padding:0.2rem 0.8rem; border-radius:2rem;
+            font-size:0.68rem; font-weight:600; text-transform:uppercase; letter-spacing:1px; cursor:pointer;
+            transition:0.2s; user-select:none; position:relative;
+        }
+        .status-badge:hover { transform:scale(1.05); filter:brightness(1.2); }
+        .status-Done { background:rgba(0,255,153,0.15); color:var(--done); border:1px solid var(--done); }
+        .status-Pending { background:rgba(255,204,0,0.15); color:var(--pending); border:1px solid var(--pending); }
+        .status-Issue { background:rgba(255,51,102,0.15); color:var(--issue); border:1px solid var(--issue); }
+        .info-row { display:flex; flex-wrap:wrap; gap:0.6rem; margin:0.5rem 0; font-size:0.78rem; }
+        .info-label { font-weight:600; color:var(--text-3); min-width:40px; }
+        .tags-container { display:flex; flex-wrap:wrap; gap:0.35rem; }
+        .tag { background:var(--tag-bg); padding:0.15rem 0.55rem; border-radius:1rem; font-size:0.68rem; color:var(--accent); }
+        .remarks-text { background:var(--remark-bg); border-radius:0.8rem; padding:0.45rem 0.65rem; font-size:0.72rem; margin-top:0.5rem; }
+        .remarks-text .tag { background:rgba(255,255,255,0.08); color:var(--text-2); }
+        body.light-mode .remarks-text .tag { background:rgba(0,0,0,0.05); }
+        .card-actions { display:flex; justify-content:flex-end; margin-top:0.7rem; gap:0.5rem; }
+        .icon-btn { background:none; border:none; color:var(--text-3); cursor:pointer; font-size:0.95rem; transition:0.2s; padding:5px; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; }
+        .icon-btn:hover { color:var(--issue); transform:scale(1.15); }
+        .icon-btn.edit-btn:hover { color:var(--accent); }
+
+        /* Status Dropdown (portal) */
+        .status-dropdown {
+            position:fixed; background:var(--modal-bg); backdrop-filter:blur(20px); border:1px solid var(--border);
+            border-radius:1rem; padding:0.4rem; z-index:2000; box-shadow:0 10px 30px var(--shadow);
+            animation: dropIn 0.15s ease;
+        }
+        @keyframes dropIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+        .status-option {
+            padding:0.45rem 1rem; border-radius:0.7rem; cursor:pointer; font-size:0.78rem; font-weight:600;
+            transition:0.15s; display:flex; align-items:center; gap:0.5rem; white-space:nowrap;
+        }
+        .status-option:hover { background:var(--tag-bg); }
+        .status-option.active { background:var(--tag-bg); }
+        .status-option .dot { width:8px; height:8px; border-radius:50%; }
+
+        /* Bulk Bar */
+        .bulk-bar {
+            position:fixed; bottom:-80px; left:50%; transform:translateX(-50%);
+            background:var(--bulk-bg); backdrop-filter:blur(20px); border:1px solid var(--border);
+            border-radius:1.5rem; padding:0.7rem 1.5rem; display:flex; align-items:center; gap:1rem;
+            box-shadow:0 -4px 30px var(--shadow); z-index:500; transition:bottom 0.3s ease;
+        }
+        .bulk-bar.visible { bottom:24px; }
+        .bulk-bar .count { font-size:0.85rem; font-weight:600; color:var(--accent); }
+
+        /* Pagination */
+        .pagination {
+            display:flex; justify-content:center; align-items:center; gap:0.4rem;
+            margin-top:1.5rem; flex-wrap:wrap;
+        }
+        .page-btn {
+            background:var(--bg-card); border:1px solid var(--border); border-radius:1rem;
+            padding:0.4rem 0.8rem; font-family:'Inter'; font-size:0.78rem; color:var(--text-2);
+            cursor:pointer; transition:0.2s; min-width:36px; text-align:center;
+        }
+        .page-btn:hover { border-color:var(--accent); color:var(--text-1); }
+        .page-btn.active { background:var(--accent); color:#000; font-weight:700; border-color:var(--accent); }
+        .page-btn:disabled { opacity:0.3; cursor:default; }
+        .page-info { font-size:0.75rem; color:var(--text-3); padding:0 0.5rem; }
+
+        /* Activity Log */
+        .activity-section {
+            background:var(--bg-card); backdrop-filter:blur(12px); border:1px solid var(--border);
+            border-radius:1.6rem; margin-top:1.5rem; overflow:hidden; transition:all 0.4s;
+            box-shadow:0 6px 16px var(--shadow);
+        }
+        .activity-header {
+            padding:1rem 1.3rem; display:flex; justify-content:space-between; align-items:center; cursor:pointer;
+            transition:0.2s;
+        }
+        .activity-header:hover { background:var(--tag-bg); }
+        .activity-header h3 { font-size:0.95rem; color:var(--accent); }
+        .activity-header .toggle-icon { transition:transform 0.3s; color:var(--text-3); }
+        .activity-header.open .toggle-icon { transform:rotate(180deg); }
+        .activity-body { max-height:0; overflow:hidden; transition:max-height 0.4s ease; }
+        .activity-body.open { max-height:400px; overflow-y:auto; }
+        .activity-list { padding:0.5rem 1.3rem 1rem; }
+        .activity-item {
+            display:flex; align-items:center; gap:0.7rem; padding:0.45rem 0;
+            border-bottom:1px solid rgba(0,204,255,0.08); font-size:0.78rem;
+        }
+        .activity-item:last-child { border:none; }
+        .activity-item .a-icon { width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.7rem; flex-shrink:0; }
+        .a-icon.create { background:rgba(0,255,153,0.15); color:var(--done); }
+        .a-icon.update { background:var(--tag-bg); color:var(--accent); }
+        .a-icon.delete { background:rgba(255,51,102,0.15); color:var(--issue); }
+        .a-icon.export { background:rgba(160,100,255,0.15); color:#a064ff; }
+        .activity-item .a-msg { flex:1; color:var(--text-2); }
+        .activity-item .a-time { font-size:0.68rem; color:var(--text-3); white-space:nowrap; }
+        .activity-empty { text-align:center; padding:1.5rem; color:var(--text-3); font-size:0.8rem; }
+
+        /* Empty */
+        .empty-message { text-align:center; padding:3rem; background:var(--empty-bg); border-radius:2rem; backdrop-filter:blur(8px); color:var(--text-2); grid-column:1/-1; }
+
+        /* Loading */
+        .loading-spinner { text-align:center; padding:2rem; grid-column:1/-1; }
+        .loading-spinner i { font-size:2rem; color:var(--accent); animation:spin 1s linear infinite; }
+
+        /* Modal */
+        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:var(--modal-overlay); backdrop-filter:blur(12px); z-index:1000; justify-content:center; align-items:center; }
+        .modal-content {
+            background:var(--modal-bg); backdrop-filter:blur(20px); border:1px solid var(--border);
+            border-radius:2rem; padding:2rem; max-width:650px; width:90%; max-height:85vh; overflow-y:auto;
+            animation:slideUp 0.3s ease; box-shadow:0 20px 50px var(--shadow);
+        }
+        @keyframes slideUp { from{transform:translateY(50px);opacity:0} to{transform:translateY(0);opacity:1} }
+        .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; border-bottom:1px solid var(--border); padding-bottom:1rem; }
+        .modal-header h2 { color:var(--accent); font-size:1.4rem; }
+        .close-modal { background:none; border:none; color:var(--text-3); font-size:1.8rem; cursor:pointer; transition:0.2s; }
+        .close-modal:hover { color:var(--issue); transform:scale(1.1); }
+
+        .footer-text { text-align:center; padding:2rem 0 0.5rem; font-size:0.72rem; color:var(--text-3); letter-spacing:1px; }
+
+        @keyframes spin { 0%{transform:rotate(0)} 100%{transform:rotate(360deg)} }
+        @keyframes fadeInGlobal { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width:6px; }
+        ::-webkit-scrollbar-track { background:transparent; }
+        ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+        ::-webkit-scrollbar-thumb:hover { background:var(--accent); }
+
+        @media (prefers-reduced-motion:reduce) {
+            *,*::before,*::after { animation-duration:0.01ms!important; transition-duration:0.01ms!important; }
+        }
+        @media (max-width:700px) {
+            body { padding:0.8rem; }
+            .glass-header { flex-direction:column; text-align:center; border-radius:1.4rem; }
+            .form-grid { flex-direction:column; }
+            .btn-cyber { width:100%; justify-content:center; }
+            .modal-content { padding:1.2rem; }
+            .tickets-grid { grid-template-columns:1fr; }
+            .stats-section { grid-template-columns:repeat(2,1fr); }
+            .filter-input { min-width:100%; }
+        }
+    </style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="floating-particles" id="particlesContainer"></div>
+
+<div class="dashboard-container">
+    <!-- Header -->
+    <header class="glass-header">
+        <div class="logo-area">
+            <h1><i class="fas fa-clipboard-list"></i> Daily Report</h1>
+            <p>ticket management dashboard • real-time tracking</p>
+        </div>
+        <div class="user-actions">
+            <span id="username"><i class="fas fa-user-astronaut"></i> Loading...</span>
+            <span class="role-badge" id="roleBadge"></span>
+            <button class="btn-cyber btn-icon" id="themeToggle" onclick="toggleTheme()" title="Toggle Theme"><i class="fas fa-moon"></i></button>
+            <button class="btn-cyber" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+    </header>
+
+    <!-- Filters -->
+    <section class="filter-section" aria-label="Filters">
+        <div class="filter-row">
+            <input type="text" id="search" class="filter-input" placeholder="Search by Ticket ID, Vendor ID, or Rest ID..." aria-label="Search tickets">
+            <select id="statusFilter" class="filter-select" aria-label="Filter by status">
+                <option value="All">All Status</option>
+                <option value="Done">Done</option>
+                <option value="Pending">Pending</option>
+                <option value="Issue">Issue</option>
+            </select>
+            <select id="sortOption" class="filter-select" aria-label="Sort tickets">
+                <option value="date-desc">Date (Newest)</option>
+                <option value="date-asc">Date (Oldest)</option>
+                <option value="id-asc">Ticket ID (A-Z)</option>
+                <option value="id-desc">Ticket ID (Z-A)</option>
+                <option value="status">Status</option>
+            </select>
+        </div>
+        <div class="filter-row">
+            <span class="filter-label">Month:</span>
+            <input type="month" id="monthFilter" class="filter-date" aria-label="Filter by month">
+            <span class="filter-label">From:</span>
+            <input type="date" id="startDate" class="filter-date" aria-label="Start date">
+            <span class="filter-label">To:</span>
+            <input type="date" id="endDate" class="filter-date" aria-label="End date">
+        </div>
+        <div class="filter-row" style="justify-content: space-between; align-items: center;">
+
+            <!-- LEFT SIDE -->
+            <div style="display:flex; gap:0.7rem; flex-wrap:wrap; align-items:center;">
+                <label class="select-all-wrap">
+                    <label class="cyber-check">
+                        <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this.checked)">
+                        <span class="mark"></span>
+                    </label>
+                    Select All
+                </label>
+
+                <button class="btn-cyber btn-sm" onclick="applyAllFilters()">
+                    <i class="fas fa-filter"></i> Apply
+                </button>
+
+                <button class="btn-cyber btn-sm" onclick="clearAllFilters()">
+                    <i class="fas fa-eraser"></i> Clear All
+                </button>
+
+                <button class="btn-cyber btn-sm auto-refresh-btn" id="autoRefreshBtn" onclick="toggleAutoRefresh()">
+                    <i class="fas fa-sync-alt"></i> Auto-Refresh
+                    <span class="pulse-dot"></span>
+                </button>
+
+                <button class="btn-cyber btn-sm" onclick="exportCSV()">
+                    <i class="fas fa-file-csv"></i> Export CSV
+                </button>
+
+                <button class="btn-cyber btn-sm btn-primary" onclick="openForm()">
+                    <i class="fas fa-plus-circle"></i> Add Ticket
+                </button>
+            </div>
+
+            <!-- RIGHT SIDE -->
+            <div class="stats-toggle">
+                <button class="active" onclick="setStatsMode('month',this)">This Month</button>
+                <button onclick="setStatsMode('all',this)">All Time</button>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Add Ticket Form -->
+    <div id="formDiv" style="display:none;">
+        <div class="glass-form-card">
+            <div class="form-grid">
+                <div class="input-group"><label>Date</label><input type="date" id="f_date"></div>
+                <div class="input-group"><label>Ticket ID (opt)</label><input type="text" id="f_ticket_id" placeholder="e.g., NEX-001"></div>
+                <div class="input-group"><label>Rest IDs (comma)</label><textarea id="f_rest_ids" placeholder="REST-ALPHA, REST-BETA" rows="2"></textarea></div>
+                <div class="input-group"><label>Vendor IDs (comma)</label><textarea id="f_vendor_ids" placeholder="RN-001, RN-002" rows="2"></textarea></div>
+                <div class="input-group"><label>Status</label><select id="f_status"><option>Done</option><option>Pending</option><option>Issue</option></select></div>
+                <div class="input-group"><label>Remarks (comma)</label><textarea id="f_remarks" placeholder="remark1, remark2" rows="2"></textarea></div>
+                <button class="btn-cyber btn-primary" onclick="saveTicket()"><i class="fas fa-save"></i> Save Ticket</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tickets Grid -->
+    <div id="ticketsGrid" class="tickets-grid">
+        <div class="loading-spinner"><i class="fas fa-spinner"></i><p style="margin-top:0.5rem;color:var(--text-3)">Loading tickets...</p></div>
+    </div>
+
+    <!-- Pagination -->
+    <div id="pagination" class="pagination"></div>
+
+    <!-- Activity Log -->
+    <section class="activity-section" aria-label="Activity Log">
+        <div class="activity-header" id="activityToggle" onclick="toggleActivityLog()">
+            <h3><i class="fas fa-history"></i> Activity Log</h3>
+            <i class="fas fa-chevron-down toggle-icon"></i>
+        </div>
+        <div class="activity-body" id="activityBody">
+            <div class="activity-list" id="activityList">
+                <div class="activity-empty">No activity recorded yet.</div>
+            </div>
+        </div>
+    </section>
+
+    <div class="footer-text">Daily Report Dashboard &bull; Glass Protocol v2.0</div>
+</div>
+
+<!-- Bulk Action Bar -->
+<div class="bulk-bar" id="bulkBar">
+    <span class="count" id="selectedCount">0 selected</span>
+    <button class="btn-cyber btn-sm btn-danger" onclick="bulkDelete()"><i class="fas fa-trash-alt"></i> Delete Selected</button>
+    <button class="btn-cyber btn-sm" onclick="clearSelection()"><i class="fas fa-times"></i> Cancel</button>
+</div>
+
+<!-- Edit Modal -->
+<div id="editModal" class="modal" role="dialog" aria-label="Edit Ticket">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2><i class="fas fa-edit"></i> Edit Ticket</h2>
+            <button class="close-modal" onclick="closeEditModal()" aria-label="Close">&times;</button>
+        </div>
+        <div class="form-grid">
+            <div class="input-group"><label>Date</label><input type="date" id="e_date"></div>
+            <div class="input-group"><label>Ticket ID</label><input type="text" id="e_ticket_id"></div>
+            <div class="input-group"><label>Rest IDs (comma)</label><textarea id="e_rest_ids" rows="2"></textarea></div>
+            <div class="input-group"><label>Vendor IDs (comma)</label><textarea id="e_vendor_ids" rows="2"></textarea></div>
+            <div class="input-group"><label>Status</label><select id="e_status"><option>Done</option><option>Pending</option><option>Issue</option></select></div>
+            <div class="input-group"><label>Remarks (comma)</label><textarea id="e_remarks" rows="2"></textarea></div>
+            <button class="btn-cyber btn-primary" onclick="updateTicket()"><i class="fas fa-save"></i> Update</button>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ===== Configuration & State ===== */
+const API_BASE = "http://localhost:8000";
+const PER_PAGE = 12;
+const AUTO_REFRESH_MS = 30000;
+
+let ticketsArray = [];
+let filteredTickets = [];
+let currentUser = null;
+let currentEditId = null;
+let currentPage = 1;
+let autoRefreshTimer = null;
+let selectedIds = new Set();
+let statsMode = 'month';
+
+/* ===== Utility Functions ===== */
+function parseList(s) { return s ? s.split(',').map(x=>x.trim()).filter(Boolean) : []; }
+function joinList(a) { return Array.isArray(a) ? a.join(', ') : ''; }
+function esc(s) { return s ? String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])) : ''; }
+function now() { return new Date().toISOString(); }
+function currentMonth() { return new Date().toISOString().slice(0,7); }
+
+function timeAgo(iso) {
+    const d = new Date(iso), diff = Date.now() - d.getTime();
+    const mins = Math.floor(diff/60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return mins + 'm ago';
+    const hrs = Math.floor(mins/60);
+    if (hrs < 24) return hrs + 'h ago';
+    const days = Math.floor(hrs/24);
+    if (days < 7) return days + 'd ago';
+    return d.toLocaleDateString();
+}
+
+/* ===== Toast ===== */
+function showToast(msg, color) {
+    const t = document.createElement('div');
+    t.innerText = msg;
+    Object.assign(t.style, {
+        position:'fixed', bottom:'20px', right:'20px', background:'var(--toast-bg)',
+        backdropFilter:'blur(12px)', borderLeft:`4px solid ${color}`, padding:'12px 20px',
+        borderRadius:'2rem', fontFamily:'Inter', fontSize:'0.82rem', zIndex:'9999',
+        boxShadow:'0 0 12px var(--accent-glow)', color:'var(--text-1)', transition:'opacity 0.3s'
+    });
+    document.body.appendChild(t);
+    setTimeout(()=>{ t.style.opacity='0'; setTimeout(()=>t.remove(),300); }, 2500);
+}
+
+/* ===== API Functions ===== */
+async function fetchTickets() {
+    if (!currentUser) return;
+    try {
+        const r = await fetch(`${API_BASE}/tickets/${currentUser.id}/${currentUser.role}`);
+        if (!r.ok) throw new Error();
+        ticketsArray = await r.json();
+        applyAllFilters();
+    } catch(e) {
+        document.getElementById('ticketsGrid').innerHTML = '<div class="empty-message"><i class="fas fa-exclamation-triangle"></i><br>Failed to load tickets. Check your connection.</div>';
+    }
+}
+
+async function createTicket(data) {
+    const r = await fetch(`${API_BASE}/tickets`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+    if (!r.ok) throw new Error();
+    return r.json();
+}
+
+async function updateTicketAPI(id, data) {
+    const r = await fetch(`${API_BASE}/tickets/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+    if (!r.ok) throw new Error();
+}
+
+async function deleteTicketAPI(id) {
+    const r = await fetch(`${API_BASE}/tickets/${id}`, { method:'DELETE' });
+    if (!r.ok) throw new Error();
+}
+
+/* ===== Filter & Sort ===== */
+function applyAllFilters() {
+    const search = document.getElementById('search').value.trim().toLowerCase();
+    const statusF = document.getElementById('statusFilter').value;
+    const monthF = document.getElementById('monthFilter').value;
+    const startD = document.getElementById('startDate').value;
+    const endD = document.getElementById('endDate').value;
+    const sortF = document.getElementById('sortOption').value;
+
+    let f = [...ticketsArray];
+
+    // Search across ticket_id, rest_ids, vendor_ids
+    if (search) {
+        f = f.filter(t =>
+            (t.ticket_id||'').toLowerCase().includes(search) ||
+            (t.rest_ids||[]).some(r => r.toLowerCase().includes(search)) ||
+            (t.vendor_ids||[]).some(r => r.toLowerCase().includes(search))
+        );
+    }
+
+    // Status
+    if (statusF !== 'All') f = f.filter(t => t.status === statusF);
+
+    // Month (overrides date range if set)
+    if (monthF) {
+        f = f.filter(t => t.date && t.date.startsWith(monthF));
+    } else {
+        if (startD) f = f.filter(t => t.date >= startD);
+        if (endD) f = f.filter(t => t.date <= endD);
+    }
+
+    // Sort
+    const statusOrder = { Done:0, Pending:1, Issue:2 };
+    switch(sortF) {
+        case 'date-desc': f.sort((a,b) => (b.date||'').localeCompare(a.date||'')); break;
+        case 'date-asc': f.sort((a,b) => (a.date||'').localeCompare(b.date||'')); break;
+        case 'id-asc': f.sort((a,b) => (a.ticket_id||'').localeCompare(b.ticket_id||'')); break;
+        case 'id-desc': f.sort((a,b) => (b.ticket_id||'').localeCompare(a.ticket_id||'')); break;
+        case 'status': f.sort((a,b) => (statusOrder[a.status]||9) - (statusOrder[b.status]||9)); break;
+    }
+
+    filteredTickets = f;
+    currentPage = 1;
+    selectedIds.clear();
+    updateBulkBar();
+    renderGrid();
+    renderPagination();
+    updateStats();
+}
+
+function clearAllFilters() {
+    document.getElementById('search').value = '';
+    document.getElementById('statusFilter').value = 'All';
+    document.getElementById('monthFilter').value = '';
+    document.getElementById('startDate').value = '';
+    document.getElementById('endDate').value = '';
+    document.getElementById('sortOption').value = 'date-desc';
+    document.getElementById('selectAll').checked = false;
+    applyAllFilters();
+    showToast('Filters cleared', 'var(--accent)');
+}
+
+/* ===== Stats ===== */
+function setStatsMode(mode, btn) {
+    statsMode = mode;
+    document.querySelectorAll('.stats-toggle button').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    updateStats();
+}
+
+function updateStats() {
+    // UI removed, so do nothing
+}
+
+function animateNum(id, target) {
+    const el = document.getElementById(id);
+    const current = parseInt(el.textContent) || 0;
+    if (current === target) return;
+    const diff = target - current;
+    const steps = Math.min(Math.abs(diff), 15);
+    let step = 0;
+    const interval = setInterval(() => {
+        step++;
+        el.textContent = Math.round(current + diff * (step / steps));
+        if (step >= steps) { el.textContent = target; clearInterval(interval); }
+    }, 30);
+}
+
+/* ===== Render Grid ===== */
+function renderGrid() {
+    const container = document.getElementById('ticketsGrid');
+    const start = (currentPage - 1) * PER_PAGE;
+    const pageItems = filteredTickets.slice(start, start + PER_PAGE);
+
+    if (pageItems.length === 0) {
+        container.innerHTML = '<div class="empty-message"><i class="fas fa-ghost"></i><br>No tickets found.<br>Adjust filters or create a new ticket.</div>';
+        return;
+    }
+
+    container.innerHTML = pageItems.map(t => {
+        const checked = selectedIds.has(t.id) ? 'checked' : '';
+        const selClass = selectedIds.has(t.id) ? 'selected' : '';
+        const restTags = (t.rest_ids||[]).map(r => `<span class="tag">${esc(r)}</span>`).join('') || '<span style="color:var(--text-3)">—</span>';
+        const rnTags = (t.vendor_ids||[]).map(r => `<span class="tag">${esc(r)}</span>`).join('') || '<span style="color:var(--text-3)">—</span>';
+        const remTags = (t.remarks||[]).map(r => `<span class="tag">${esc(r)}</span>`).join(' ') || '<span style="color:var(--text-3)">no remarks</span>';
+
+        return `<div class="ticket-card ${selClass}" data-id="${t.id}">
+            <div class="card-top">
+                <div class="card-top-left">
+                    <label class="cyber-check"><input type="checkbox" ${checked} onchange="toggleSelect('${t.id}',this.checked)"><span class="mark"></span></label>
+                    <span class="ticket-id"><i class="fas fa-ticket-alt"></i> ${esc(t.ticket_id||'N/A')}</span>
+                    <span class="ticket-date"><i class="far fa-calendar-alt"></i> ${t.date||'—'}</span>
+                </div>
+                <span class="status-badge status-${t.status}" onclick="openStatusDropdown('${t.id}',event)">
+                    <i class="fas fa-circle" style="font-size:0.45rem"></i> ${t.status} <i class="fas fa-caret-down" style="font-size:0.6rem;margin-left:2px"></i>
+                </span>
+            </div>
+            <div class="info-row"><span class="info-label">Rest:</span><div class="tags-container">${restTags}</div></div>
+            <div class="info-row"><span class="info-label">Vendor:</span><div class="tags-container">${rnTags}</div></div>
+            <div class="remarks-text"><i class="fas fa-comment-dots" style="color:var(--text-3)"></i> ${remTags}</div>
+            <div class="card-actions">
+                <button class="icon-btn edit-btn" onclick="openEditModal('${t.id}')" title="Edit"><i class="fas fa-edit"></i></button>
+                <button class="icon-btn" onclick="deleteTicket('${t.id}')" title="Delete"><i class="fas fa-trash-alt"></i></button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+/* ===== Pagination ===== */
+function renderPagination() {
+    const total = filteredTickets.length;
+    const pages = Math.max(1, Math.ceil(total / PER_PAGE));
+    const el = document.getElementById('pagination');
+    if (pages <= 1) { el.innerHTML = `<span class="page-info">${total} ticket${total!==1?'s':''}</span>`; return; }
+
+    let html = `<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}><i class="fas fa-chevron-left"></i></button>`;
+
+    // Show smart page range
+    const range = [];
+    for (let i = 1; i <= pages; i++) {
+        if (i === 1 || i === pages || (i >= currentPage - 2 && i <= currentPage + 2)) range.push(i);
+        else if (range[range.length-1] !== '...') range.push('...');
+    }
+    range.forEach(p => {
+        if (p === '...') html += `<span class="page-info">...</span>`;
+        else html += `<button class="page-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
+    });
+
+    html += `<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===pages?'disabled':''}><i class="fas fa-chevron-right"></i></button>`;
+    html += `<span class="page-info">${total} ticket${total!==1?'s':''} &bull; Page ${currentPage}/${pages}</span>`;
+    el.innerHTML = html;
+}
+
+function goPage(p) {
+    const pages = Math.ceil(filteredTickets.length / PER_PAGE);
+    if (p < 1 || p > pages) return;
+    currentPage = p;
+    renderGrid();
+    renderPagination();
+    document.getElementById('ticketsGrid').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+/* ===== In-Card Status Dropdown ===== */
+function openStatusDropdown(ticketId, event) {
+    event.stopPropagation();
+    closeStatusDropdown();
+
+    const badge = event.currentTarget;
+    const rect = badge.getBoundingClientRect();
+    const ticket = ticketsArray.find(t => t.id === ticketId);
+    if (!ticket) return;
+
+    const dd = document.createElement('div');
+    dd.id = 'statusDropdown';
+    dd.className = 'status-dropdown';
+
+    // Position: try to align left, adjust if off-screen right
+    let left = rect.left;
+    if (left + 140 > window.innerWidth) left = window.innerWidth - 150;
+    dd.style.left = left + 'px';
+    dd.style.top = (rect.bottom + 6) + 'px';
+
+    ['Done','Pending','Issue'].forEach(s => {
+        const opt = document.createElement('div');
+        opt.className = 'status-option' + (ticket.status === s ? ' active' : '');
+        const colors = { Done:'var(--done)', Pending:'var(--pending)', Issue:'var(--issue)' };
+        opt.innerHTML = `<span class="dot" style="background:${colors[s]}"></span> ${s}`;
+        opt.onclick = (e) => { e.stopPropagation(); changeStatus(ticketId, s); closeStatusDropdown(); };
+        dd.appendChild(opt);
+    });
+
+    document.body.appendChild(dd);
+}
+
+function closeStatusDropdown() {
+    const existing = document.getElementById('statusDropdown');
+    if (existing) existing.remove();
+}
+
+async function changeStatus(id, newStatus) {
+    const ticket = ticketsArray.find(t => t.id === id);
+    if (!ticket || ticket.status === newStatus) return;
+    const oldStatus = ticket.status;
+    try {
+        await updateTicketAPI(id, { status: newStatus });
+        ticket.status = newStatus;
+        addActivity('update', `Changed <b>${esc(ticket.ticket_id)}</b> status: ${oldStatus} → ${newStatus}`);
+        showToast(`Status → ${newStatus}`, newStatus === 'Done' ? 'var(--done)' : newStatus === 'Issue' ? 'var(--issue)' : 'var(--pending)');
+        applyAllFilters();
+    } catch(e) {
+        showToast('Failed to update status', 'var(--issue)');
+    }
+}
+
+document.addEventListener('click', closeStatusDropdown);
+
+/* ===== CRUD ===== */
+function openForm() {
+    const d = document.getElementById('formDiv');
+    const vis = d.style.display === 'none';
+    d.style.display = vis ? 'block' : 'none';
+    if (vis) document.getElementById('f_date').value = new Date().toISOString().slice(0,10);
+}
+
+async function saveTicket() {
+    const date = document.getElementById('f_date').value;
+    let tid = document.getElementById('f_ticket_id').value.trim();
+    if (!date) { showToast('Please select a date', 'var(--pending)'); return; }
+    if (!tid) tid = 'TIX-' + String(Math.floor(Math.random()*10000)).padStart(4,'0');
+
+    const data = {
+        user_id: currentUser.id, date, ticket_id: tid,
+        rest_ids: parseList(document.getElementById('f_rest_ids').value),
+        vendor_ids: parseList(document.getElementById('f_vendor_ids').value),
+        status: document.getElementById('f_status').value,
+        remarks: parseList(document.getElementById('f_remarks').value)
+    };
+
+    try {
+        await createTicket(data);
+        addActivity('create', `Created ticket <b>${esc(tid)}</b>`);
+        showToast('Ticket created!', 'var(--done)');
+        ['f_date','f_ticket_id','f_rest_ids','f_vendor_ids','f_remarks'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('f_status').value = 'Done';
+        document.getElementById('formDiv').style.display = 'none';
+        await fetchTickets();
+    } catch(e) { showToast('Failed to create ticket', 'var(--issue)'); }
+}
+
+function openEditModal(id) {
+    const t = ticketsArray.find(x => x.id === id);
+    if (!t) return;
+    currentEditId = id;
+    document.getElementById('e_date').value = t.date || '';
+    document.getElementById('e_ticket_id').value = t.ticket_id || '';
+    document.getElementById('e_rest_ids').value = joinList(t.rest_ids);
+    document.getElementById('e_vendor_ids').value = joinList(t.vendor_ids);
+    document.getElementById('e_status').value = t.status || 'Pending';
+    document.getElementById('e_remarks').value = joinList(t.remarks);
+    document.getElementById('editModal').style.display = 'flex';
+}
+
+function closeEditModal() {
+    document.getElementById('editModal').style.display = 'none';
+    currentEditId = null;
+}
+
+async function updateTicket() {
+    if (!currentEditId) return;
+    const date = document.getElementById('e_date').value;
+    if (!date) { showToast('Select a date', 'var(--pending)'); return; }
+    const data = {
+        date, ticket_id: document.getElementById('e_ticket_id').value.trim(),
+        rest_ids: parseList(document.getElementById('e_rest_ids').value),
+        vendor_ids: parseList(document.getElementById('e_vendor_ids').value),
+        status: document.getElementById('e_status').value,
+        remarks: parseList(document.getElementById('e_remarks').value)
+    };
+    try {
+        await updateTicketAPI(currentEditId, data);
+        addActivity('update', `Edited ticket <b>${esc(data.ticket_id)}</b>`);
+        showToast('Ticket updated!', 'var(--accent)');
+        closeEditModal();
+        await fetchTickets();
+    } catch(e) { showToast('Failed to update', 'var(--issue)'); }
+}
+
+async function deleteTicket(id) {
+    const t = ticketsArray.find(x => x.id === id);
+    if (!t) return;
+    if (!confirm(`Delete ticket ${t.ticket_id || id}?`)) return;
+    try {
+        await deleteTicketAPI(id);
+        addActivity('delete', `Deleted ticket <b>${esc(t.ticket_id||id)}</b>`);
+        showToast('Ticket deleted', 'var(--accent)');
+        selectedIds.delete(id);
+        await fetchTickets();
+    } catch(e) { showToast('Failed to delete', 'var(--issue)'); }
+}
+
+/* ===== Bulk Select & Delete ===== */
+function toggleSelect(id, checked) {
+    if (checked) selectedIds.add(id); else selectedIds.delete(id);
+    updateBulkBar();
+    // Update card visual
+    const card = document.querySelector(`.ticket-card[data-id="${id}"]`);
+    if (card) card.classList.toggle('selected', checked);
+    // Update select-all state
+    const pageIds = getPageIds();
+    document.getElementById('selectAll').checked = pageIds.length > 0 && pageIds.every(id => selectedIds.has(id));
+}
+
+function toggleSelectAll(checked) {
+    const pageIds = getPageIds();
+    pageIds.forEach(id => { if (checked) selectedIds.add(id); else selectedIds.delete(id); });
+    renderGrid();
+    updateBulkBar();
+}
+
+function getPageIds() {
+    const start = (currentPage - 1) * PER_PAGE;
+    return filteredTickets.slice(start, start + PER_PAGE).map(t => t.id);
+}
+
+function clearSelection() {
+    selectedIds.clear();
+    document.getElementById('selectAll').checked = false;
+    renderGrid();
+    updateBulkBar();
+}
+
+function updateBulkBar() {
+    const bar = document.getElementById('bulkBar');
+    const count = selectedIds.size;
+    document.getElementById('selectedCount').textContent = count + ' selected';
+    bar.classList.toggle('visible', count > 0);
+}
+
+async function bulkDelete() {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Delete ${selectedIds.size} ticket(s)?`)) return;
+    const ids = [...selectedIds];
+    let success = 0;
+    for (const id of ids) {
+        try { await deleteTicketAPI(id); success++; } catch(e) {}
+    }
+    addActivity('delete', `Bulk deleted <b>${success}</b> ticket(s)`);
+    showToast(`${success} ticket(s) deleted`, 'var(--accent)');
+    selectedIds.clear();
+    document.getElementById('selectAll').checked = false;
+    updateBulkBar();
+    await fetchTickets();
+}
+
+/* ===== Export CSV ===== */
+function exportCSV() {
+    if (filteredTickets.length === 0) { showToast('No tickets to export', 'var(--pending)'); return; }
+
+    const headers = ['Date','Ticket ID','Rest IDs','Vendor IDs','Status','Remarks'];
+    const rows = filteredTickets.map(t => [
+        t.date || '',
+        t.ticket_id || '',
+        joinList(t.rest_ids),
+        joinList(t.vendor_ids),
+        t.status || '',
+        joinList(t.remarks)
+    ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(','));
+
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+
+    // Smart filename based on active filter
+    const month = document.getElementById('monthFilter').value;
+    const startD = document.getElementById('startDate').value;
+    const endD = document.getElementById('endDate').value;
+    let fname = 'daily_report';
+    if (month) fname += '_' + month;
+    else if (startD && endD) fname += '_' + startD + '_to_' + endD;
+    else if (startD) fname += '_from_' + startD;
+    else fname += '_' + currentMonth();
+    fname += '.csv';
+
+    a.href = url; a.download = fname; a.click();
+    URL.revokeObjectURL(url);
+    addActivity('export', `Exported <b>${filteredTickets.length}</b> tickets to CSV`);
+    showToast(`Exported ${filteredTickets.length} tickets`, '#a064ff');
+}
+
+/* ===== Auto Refresh ===== */
+function toggleAutoRefresh() {
+    const btn = document.getElementById('autoRefreshBtn');
+    if (autoRefreshTimer) {
+        clearInterval(autoRefreshTimer);
+        autoRefreshTimer = null;
+        btn.classList.remove('active');
+        showToast('Auto-refresh disabled', 'var(--text-3)');
+    } else {
+        autoRefreshTimer = setInterval(() => fetchTickets(), AUTO_REFRESH_MS);
+        btn.classList.add('active');
+        showToast('Auto-refresh every 30s', 'var(--done)');
+    }
+}
+
+/* ===== Theme Toggle ===== */
+function toggleTheme() {
+    const body = document.body;
+    body.classList.toggle('light-mode');
+    const isLight = body.classList.contains('light-mode');
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    document.getElementById('themeToggle').innerHTML = isLight ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+}
+
+function loadTheme() {
+    if (localStorage.getItem('theme') === 'light') {
+        document.body.classList.add('light-mode');
+        document.getElementById('themeToggle').innerHTML = '<i class="fas fa-sun"></i>';
+    }
+}
+
+/* ===== Activity Log ===== */
+function getLog() {
+    try { return JSON.parse(localStorage.getItem('activityLog') || '[]'); } catch { return []; }
+}
+
+function saveLog(log) {
+    localStorage.setItem('activityLog', JSON.stringify(log.slice(0, 50)));
+}
+
+function addActivity(type, msg) {
+    const log = getLog();
+    log.unshift({ type, msg, time: now() });
+    if (log.length > 50) log.length = 50;
+    saveLog(log);
+    renderActivityLog();
+}
+
+function renderActivityLog() {
+    const log = getLog();
+    const container = document.getElementById('activityList');
+    if (log.length === 0) { container.innerHTML = '<div class="activity-empty">No activity recorded yet.</div>'; return; }
+
+    const icons = { create:'fa-plus', update:'fa-pen', delete:'fa-trash', export:'fa-download' };
+    container.innerHTML = log.slice(0, 25).map(item => `
+        <div class="activity-item">
+            <div class="a-icon ${item.type}"><i class="fas ${icons[item.type]||'fa-circle'}"></i></div>
+            <span class="a-msg">${item.msg}</span>
+            <span class="a-time">${timeAgo(item.time)}</span>
+        </div>
+    `).join('');
+}
+
+function toggleActivityLog() {
+    document.getElementById('activityToggle').classList.toggle('open');
+    document.getElementById('activityBody').classList.toggle('open');
+}
+
+/* ===== Auth ===== */
+function logout() {
+    localStorage.removeItem('user');
+    window.location.href = 'login.html';
+}
+
+/* ===== Particles ===== */
+function createParticles() {
+    const c = document.getElementById('particlesContainer');
+    for (let i = 0; i < 40; i++) {
+        const p = document.createElement('div');
+        p.classList.add('particle');
+        const s = Math.random() * 5 + 2;
+        Object.assign(p.style, {
+            width: s+'px', height: s+'px',
+            left: Math.random()*100+'%', top: Math.random()*100+'%',
+            animationDuration: (Math.random()*15+8)+'s',
+            animationDelay: (Math.random()*5)+'s',
+            opacity: Math.random()*0.3+0.1
+        });
+        c.appendChild(p);
+    }
+}
+
+/* ===== Keyboard Shortcuts ===== */
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeEditModal(); closeStatusDropdown(); }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); document.getElementById('search').focus(); }
+});
+
+/* ===== Live filter on typing ===== */
+document.getElementById('search').addEventListener('input', () => applyAllFilters());
+document.getElementById('statusFilter').addEventListener('change', () => applyAllFilters());
+document.getElementById('sortOption').addEventListener('change', () => applyAllFilters());
+document.getElementById('monthFilter').addEventListener('change', () => {
+    // Clear date range when month is selected
+    document.getElementById('startDate').value = '';
+    document.getElementById('endDate').value = '';
+    applyAllFilters();
+});
+document.getElementById('startDate').addEventListener('change', () => {
+    document.getElementById('monthFilter').value = '';
+    applyAllFilters();
+});
+document.getElementById('endDate').addEventListener('change', () => {
+    document.getElementById('monthFilter').value = '';
+    applyAllFilters();
+});
+
+/* ===== Init ===== */
+function init() {
+    createParticles();
+    loadTheme();
+
+    const userStr = localStorage.getItem('user');
+    if (!userStr) { window.location.href = 'login.html'; return; }
+    try { currentUser = JSON.parse(userStr); }
+    catch { window.location.href = 'login.html'; return; }
+
+    document.getElementById('username').innerHTML = `<i class="fas fa-user-astronaut"></i> ${esc(currentUser.name || currentUser.id)}`;
+    document.getElementById('roleBadge').innerHTML = `<i class="fas fa-shield-alt"></i> ${currentUser.role || 'user'}`;
+
+    renderActivityLog();
+    fetchTickets();
+}
+
+init();
+</script>
+</body>
+</html>
