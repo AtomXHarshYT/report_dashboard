@@ -605,7 +605,12 @@
         const data = await response.json();
         if (response.ok && !data.error) {
           // success: store user and redirect
-          localStorage.setItem("user", JSON.stringify(data));
+          localStorage.setItem("user", JSON.stringify({
+            id: data.id || data.employee_id,
+            employee_id: data.employee_id,
+            name: data.name,
+            role: data.role
+          }));
           return { success: true, redirect: true };
         } else {
           // api returned error field

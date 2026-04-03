@@ -27,10 +27,10 @@ def get_tickets(user_id: str, role: str):
             "id": str(row[0]),
             "date": str(row[1]),
             "ticket_id": row[2],
-            "rest_ids": row[3],
-            "vendor_ids": row[4],
+            "rest_ids": row[3] if row[3] else [],
+            "vendor_ids": row[4] if row[4] else [],
             "status": row[5],
-            "remarks": row[6]
+            "remarks": row[6] if row[6] else []
         })
 
     cur.close()
@@ -41,16 +41,19 @@ def get_tickets(user_id: str, role: str):
 
 @router.post("/tickets")
 async def create_ticket(data: TicketCreate):
+    print("Received data:", data.dict())
+    
     conn = get_connection()
     cur = conn.cursor()
 
     new_id = str(uuid.uuid4())
 
     cur.execute("""
-        INSERT INTO tickets (id, date, ticket_id, rest_ids, vendor_ids, status, remarks)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO tickets (id, user_id, date, ticket_id, rest_ids, vendor_ids, status, remarks)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
     """, (
         new_id,
+        data.user_id,
         data.date,
         data.ticket_id,
         data.rest_ids,
@@ -60,6 +63,7 @@ async def create_ticket(data: TicketCreate):
     ))
 
     conn.commit()
+    print("Inserted ticket with id:", new_id, "user_id:", data.user_id)
     cur.close()
     conn.close()
 

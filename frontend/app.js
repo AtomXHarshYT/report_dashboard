@@ -12,6 +12,11 @@ let allData = [];
 
 window.onload = () => {
     const user = JSON.parse(localStorage.getItem("user"));
+    if (!user || !user.id) {
+        alert("Please login first");
+        window.location.href = "login.html";
+        return;
+    }
     document.getElementById("username").innerText =
         user.name + " (" + user.role + ")";
 
@@ -26,6 +31,11 @@ function clean(val) {
 // LOAD
 async function loadTickets() {
     const user = JSON.parse(localStorage.getItem("user"));
+    if (!user || !user.id) {
+        alert("Please login first");
+        window.location.href = "login.html";
+        return;
+    }
 
     const res = await fetch(`${API}/tickets/${user.id}/${user.role}`);
     const data = await res.json();
@@ -81,6 +91,11 @@ function connectWebSocket() {
 // SAVE
 async function saveTicket() {
     const user = JSON.parse(localStorage.getItem("user"));
+    if (!user || !user.id) {
+        alert("Please login first");
+        window.location.href = "login.html";
+        return;
+    }
 
     const body = {
         user_id: user.id,
@@ -91,6 +106,9 @@ async function saveTicket() {
         status: document.getElementById("status").value,
         remarks: clean(document.getElementById("remarks").value)
     };
+
+    console.log('User:', user);
+    console.log('Body to send:', body);
 
     if (editId) {
         await fetch(`${API}/tickets/${editId}`, {

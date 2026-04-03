@@ -10,7 +10,7 @@ def login(data: LoginModel):
     cur = conn.cursor()
 
     cur.execute("""
-        SELECT id, name, role 
+        SELECT id, employee_id, name, role 
         FROM users 
         WHERE employee_id=%s AND password=%s
     """, (data.employee_id, data.password))
@@ -25,6 +25,7 @@ def login(data: LoginModel):
 
     return {
         "id": str(user[0]),
-        "name": user[1],
-        "role": user[2]
+        "employee_id": user[1],
+        "name": user[2],
+        "role": user[3]
     }
