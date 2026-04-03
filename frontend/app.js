@@ -40,12 +40,14 @@ async function loadTickets() {
     const res = await fetch(`${API}/tickets/${user.id}/${user.role}`);
     const data = await res.json();
 
+    console.log('Fetched data:', data);
     allData = data;
     render(data);
 }
 
 // RENDER
 function render(data) {
+    console.log('Rendering data:', data);
     const table = document.getElementById("table");
     table.innerHTML = "";
 
@@ -127,6 +129,7 @@ async function saveTicket() {
 
     document.getElementById("formDiv").style.display = "none";
     loadTickets();
+    setTimeout(() => loadTickets(), 2000); // reload after 2 seconds to ensure update
 }
 
 // DELETE
