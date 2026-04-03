@@ -50,7 +50,7 @@ async def create_ticket(data: TicketCreate):
 
     cur.execute("""
         INSERT INTO tickets (id, user_id, date, ticket_id, rest_ids, vendor_ids, status, remarks)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s::uuid, %s, %s, %s, %s, %s, %s)
     """, (
         new_id,
         data.user_id,
