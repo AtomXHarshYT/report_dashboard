@@ -451,6 +451,9 @@
                 <button class="btn-cyber btn-sm btn-primary" onclick="openForm()">
                     <i class="fas fa-plus-circle"></i> Add Ticket
                 </button>
+                <button class="btn-cyber btn-sm" onclick="openReportModal()">
+                    <i class="fas fa-chart-bar"></i> Daily Report
+                </button>
             </div>
 
             <!-- RIGHT SIDE -->
@@ -527,6 +530,18 @@
     </div>
 </div>
 
+<!-- Report Modal -->
+<div id="reportModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2><i class="fas fa-chart-line"></i> Daily Report</h2>
+            <button class="close-modal" onclick="closeReportModal()">&times;</button>
+        </div>
+
+        <div id="reportContent" style="font-size:0.9rem; line-height:1.8;"></div>
+    </div>
+</div>
+
 <script>
 /* ===== Configuration & State ===== */
 const API_BASE = "http://localhost:8000";
@@ -579,7 +594,9 @@ function showToast(msg, color) {
 async function fetchTickets() {
     if (!currentUser) return;
     try {
-        const r = await fetch(`${API_BASE}/tickets/${currentUser.id}/${currentUser.role}`);
+        const r = await fetch(`${API_BASE}/tickets/${currentUser.id}/${currentUser.role}`, {
+            cache: "no-store"
+        });
         if (!r.ok) throw new Error();
         ticketsArray = await r.json();
         applyAllFilters();
@@ -595,8 +612,32 @@ async function createTicket(data) {
 }
 
 async function updateTicketAPI(id, data) {
-    const r = await fetch(`${API_BASE}/tickets/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
-    if (!r.ok) throw new Error();
+    const cleanData = {};
+
+    Object.keys(data).forEach(key => {
+        const val = data[key];
+
+        // ❌ remove undefined, null, empty string
+        if (
+            val !== undefined &&
+            val !== null &&
+            val !== ""
+        ) {
+            cleanData[key] = val;
+        }
+    });
+
+    const r = await fetch(`${API_BASE}/tickets/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cleanData)
+    });
+
+    if (!r.ok) {
+        const err = await r.text();
+        console.log("Update error:", err); // 👈 IMPORTANT
+        throw new Error();
+    }
 }
 
 async function deleteTicketAPI(id) {
@@ -806,15 +847,24 @@ function closeStatusDropdown() {
 async function changeStatus(id, newStatus) {
     const ticket = ticketsArray.find(t => t.id === id);
     if (!ticket || ticket.status === newStatus) return;
+
     const oldStatus = ticket.status;
+
+    // ✅ INSTANT UI UPDATE
+    ticket.status = newStatus;
+    applyAllFilters();
+
     try {
         await updateTicketAPI(id, { status: newStatus });
-        ticket.status = newStatus;
-        addActivity('update', `Changed <b>${esc(ticket.ticket_id)}</b> status: ${oldStatus} → ${newStatus}`);
-        showToast(`Status → ${newStatus}`, newStatus === 'Done' ? 'var(--done)' : newStatus === 'Issue' ? 'var(--issue)' : 'var(--pending)');
+
+        addActivity('update', `Changed ${ticket.ticket_id} → ${newStatus}`);
+        showToast(`Status → ${newStatus}`, 'var(--done)');
+    } catch (e) {
+        // ❌ rollback if failed
+        ticket.status = oldStatus;
         applyAllFilters();
-    } catch(e) {
-        showToast('Failed to update status', 'var(--issue)');
+
+        showToast('Failed to update', 'var(--issue)');
     }
 }
 
@@ -843,13 +893,14 @@ async function saveTicket() {
     };
 
     try {
-        await createTicket(data);
         addActivity('create', `Created ticket <b>${esc(tid)}</b>`);
         showToast('Ticket created!', 'var(--done)');
         ['f_date','f_ticket_id','f_rest_ids','f_vendor_ids','f_remarks'].forEach(id => document.getElementById(id).value = '');
         document.getElementById('f_status').value = 'Done';
         document.getElementById('formDiv').style.display = 'none';
-        await fetchTickets();
+        const newTicket = await createTicket(data);
+        ticketsArray.unshift(newTicket);
+        applyAllFilters();
     } catch(e) { showToast('Failed to create ticket', 'var(--issue)'); }
 }
 
@@ -872,23 +923,44 @@ function closeEditModal() {
 }
 
 async function updateTicket() {
-    if (!currentEditId) return;
+    if (!currentEditId) {
+        showToast('Invalid ticket ID', 'var(--issue)');
+        return;
+    }
+
+    const id = currentEditId; // ✅ SAVE ID FIRST
+
     const date = document.getElementById('e_date').value;
-    if (!date) { showToast('Select a date', 'var(--pending)'); return; }
+    if (!date) {
+        showToast('Select a date', 'var(--pending)');
+        return;
+    }
+
     const data = {
-        date, ticket_id: document.getElementById('e_ticket_id').value.trim(),
+        date,
+        ticket_id: document.getElementById('e_ticket_id').value.trim(),
         rest_ids: parseList(document.getElementById('e_rest_ids').value),
         vendor_ids: parseList(document.getElementById('e_vendor_ids').value),
         status: document.getElementById('e_status').value,
         remarks: parseList(document.getElementById('e_remarks').value)
     };
+
+    // ✅ INSTANT UI UPDATE
+    const t = ticketsArray.find(x => x.id === id);
+    if (t) Object.assign(t, data);
+
+    applyAllFilters();
+    closeEditModal(); // now safe
+
     try {
-        await updateTicketAPI(currentEditId, data);
-        addActivity('update', `Edited ticket <b>${esc(data.ticket_id)}</b>`);
+        await updateTicketAPI(id, data);
+
+        addActivity('update', `Edited ticket <b>${data.ticket_id}</b>`);
         showToast('Ticket updated!', 'var(--accent)');
-        closeEditModal();
-        await fetchTickets();
-    } catch(e) { showToast('Failed to update', 'var(--issue)'); }
+
+    } catch (e) {
+        showToast('Failed to update', 'var(--issue)');
+    }
 }
 
 async function deleteTicket(id) {
@@ -900,7 +972,8 @@ async function deleteTicket(id) {
         addActivity('delete', `Deleted ticket <b>${esc(t.ticket_id||id)}</b>`);
         showToast('Ticket deleted', 'var(--accent)');
         selectedIds.delete(id);
-        await fetchTickets();
+        ticketsArray = ticketsArray.filter(x => x.id !== id);
+        applyAllFilters();
     } catch(e) { showToast('Failed to delete', 'var(--issue)'); }
 }
 
@@ -946,16 +1019,16 @@ async function bulkDelete() {
     if (selectedIds.size === 0) return;
     if (!confirm(`Delete ${selectedIds.size} ticket(s)?`)) return;
     const ids = [...selectedIds];
-    let success = 0;
-    for (const id of ids) {
-        try { await deleteTicketAPI(id); success++; } catch(e) {}
-    }
-    addActivity('delete', `Bulk deleted <b>${success}</b> ticket(s)`);
-    showToast(`${success} ticket(s) deleted`, 'var(--accent)');
+
+    await Promise.all(ids.map(id => deleteTicketAPI(id)));
+
+    ticketsArray = ticketsArray.filter(t => !ids.includes(t.id));
+
     selectedIds.clear();
     document.getElementById('selectAll').checked = false;
     updateBulkBar();
-    await fetchTickets();
+
+    applyAllFilters();
 }
 
 /* ===== Export CSV ===== */
@@ -1060,6 +1133,44 @@ function renderActivityLog() {
 function toggleActivityLog() {
     document.getElementById('activityToggle').classList.toggle('open');
     document.getElementById('activityBody').classList.toggle('open');
+}
+
+
+function openReportModal() {
+    const today = new Date().toISOString().slice(0,10);
+
+    const todayTickets = ticketsArray.filter(t => t.date === today);
+
+    let closed = 0;
+    let integration = 0;
+    let disintegration = 0;
+
+    todayTickets.forEach(t => {
+        if (t.status === "Done") closed++;
+
+        const remarks = (t.remarks || []).map(r => r.toLowerCase());
+
+        if (remarks.some(r => r.includes("new integration"))) {
+            integration++;
+        }
+
+        if (remarks.some(r => r.includes("disintegration"))) {
+            disintegration++;
+        }
+    });
+
+    document.getElementById("reportContent").innerHTML = `
+        <div><b>Date:</b> ${today}</div>
+        <div><b>Total Closed:</b> ${closed}</div>
+        <div><b>New Integrations:</b> ${integration}</div>
+        <div><b>Disintegrations:</b> ${disintegration}</div>
+    `;
+
+    document.getElementById("reportModal").style.display = "flex";
+}
+
+function closeReportModal() {
+    document.getElementById("reportModal").style.display = "none";
 }
 
 /* ===== Auth ===== */

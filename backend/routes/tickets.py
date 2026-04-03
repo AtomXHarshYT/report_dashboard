@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from database import get_connection
+from ws_manager import manager
 from models import TicketCreate, TicketUpdate
 import uuid
 
@@ -39,18 +40,17 @@ def get_tickets(user_id: str, role: str):
 
 
 @router.post("/tickets")
-def create_ticket(data: TicketCreate):
+async def create_ticket(data: TicketCreate):
     conn = get_connection()
     cur = conn.cursor()
 
+    new_id = str(uuid.uuid4())
+
     cur.execute("""
-        INSERT INTO tickets (
-            id, user_id, date, ticket_id, rest_ids, vendor_ids, status, remarks
-        )
-        VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+        INSERT INTO tickets (id, date, ticket_id, rest_ids, vendor_ids, status, remarks)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
     """, (
-        str(uuid.uuid4()),
-        data.user_id,
+        new_id,
         data.date,
         data.ticket_id,
         data.rest_ids,
@@ -63,37 +63,65 @@ def create_ticket(data: TicketCreate):
     cur.close()
     conn.close()
 
-    return {"message": "created"}
+    await manager.broadcast("tickets_updated")
+
+    return {"message": "created", "id": new_id}
 
 
 @router.put("/tickets/{id}")
-def update_ticket(id: str, data: TicketUpdate):
+async def update_ticket(id: str, data: TicketUpdate):
     conn = get_connection()
     cur = conn.cursor()
 
-    cur.execute("""
-        UPDATE tickets
-        SET date=%s, ticket_id=%s, rest_ids=%s, vendor_ids=%s, status=%s, remarks=%s
-        WHERE id=%s
-    """, (
-        data.date,
-        data.ticket_id,
-        data.rest_ids,
-        data.vendor_ids,
-        data.status,
-        data.remarks,
-        id
-    ))
+    update_fields = []
+    values = []
 
+    if data.date is not None:
+        update_fields.append("date=%s")
+        values.append(data.date)
+
+    if data.ticket_id is not None:
+        update_fields.append("ticket_id=%s")
+        values.append(data.ticket_id)
+
+    if data.rest_ids is not None:
+        update_fields.append("rest_ids=%s")
+        values.append(data.rest_ids)
+
+    if data.vendor_ids is not None:
+        update_fields.append("vendor_ids=%s")
+        values.append(data.vendor_ids)
+
+    if data.status is not None:
+        update_fields.append("status=%s")
+        values.append(data.status)
+
+    if data.remarks is not None:
+        update_fields.append("remarks=%s")
+        values.append(data.remarks)
+
+    if not update_fields:
+        return {"message": "No fields to update"}
+
+    values.append(id)
+
+    query = f"""
+        UPDATE tickets
+        SET {', '.join(update_fields)}
+        WHERE id=%s
+    """
+
+    cur.execute(query, tuple(values))
     conn.commit()
+
     cur.close()
     conn.close()
-
-    return {"message": "updated"}
+    await manager.broadcast("tickets_updated")
+    return {"message": "updated"}   
 
 
 @router.delete("/tickets/{id}")
-def delete_ticket(id: str):
+async def delete_ticket(id: str):
     conn = get_connection()
     cur = conn.cursor()
 
@@ -102,5 +130,5 @@ def delete_ticket(id: str):
     conn.commit()
     cur.close()
     conn.close()
-
+    await manager.broadcast("tickets_updated")
     return {"message": "deleted"}

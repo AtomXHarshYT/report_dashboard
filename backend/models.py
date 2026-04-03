@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import List, Optional
-from datetime import date
+import datetime
 
 class LoginModel(BaseModel):
     employee_id: str
@@ -8,7 +8,7 @@ class LoginModel(BaseModel):
 
 class TicketCreate(BaseModel):
     user_id: str
-    date: date
+    date: datetime.date
     ticket_id: Optional[str] = None
     rest_ids: List[str]
     vendor_ids: List[str]
@@ -16,9 +16,9 @@ class TicketCreate(BaseModel):
     remarks: List[str]
 
 class TicketUpdate(BaseModel):
-    date: date
+    date: Optional[datetime.date] = None
     ticket_id: Optional[str] = None
-    rest_ids: List[str]
-    vendor_ids: List[str]
-    status: str
-    remarks: List[str]
+    rest_ids: Optional[List[str]] = None
+    vendor_ids: Optional[List[str]] = None
+    status: Optional[str] = None
+    remarks: Optional[List[str]] = None

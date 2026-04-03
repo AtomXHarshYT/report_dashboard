@@ -1,4 +1,11 @@
-const API = "http://127.0.0.1:8000";
+const API = location.hostname === "localhost"
+  ? "http://127.0.0.1:8000"
+  : "https://report-dashboard-o8us.onrender.com";
+
+const WS = location.hostname === "localhost"
+  ? "ws://127.0.0.1:8000/ws"
+  : "wss://report-dashboard-o8us.onrender.com/ws";
+let socket;
 
 let editId = null;
 let allData = [];
@@ -7,6 +14,8 @@ window.onload = () => {
     const user = JSON.parse(localStorage.getItem("user"));
     document.getElementById("username").innerText =
         user.name + " (" + user.role + ")";
+
+    connectWebSocket(); // 👈 ADD THIS
     loadTickets();
 };
 
@@ -46,6 +55,27 @@ function render(data) {
         </tr>
         `;
     });
+}
+
+function connectWebSocket() {
+    socket = new WebSocket(WS);
+
+    socket.onopen = () => {
+        console.log("WebSocket connected");
+    };
+
+    socket.onmessage = (event) => {
+        console.log("Realtime:", event.data);
+
+        if (event.data === "tickets_updated") {
+            loadTickets();
+        }
+    };
+
+    socket.onclose = () => {
+        console.log("WebSocket disconnected... retrying");
+        setTimeout(connectWebSocket, 2000); // auto reconnect
+    };
 }
 
 // SAVE
