@@ -898,7 +898,8 @@ async function saveTicket() {
         ['f_date','f_ticket_id','f_rest_ids','f_vendor_ids','f_remarks'].forEach(id => document.getElementById(id).value = '');
         document.getElementById('f_status').value = 'Done';
         document.getElementById('formDiv').style.display = 'none';
-        const newTicket = await createTicket(data);
+        const result = await createTicket(data);
+        const newTicket = { ...data, id: result.id };
         ticketsArray.unshift(newTicket);
         applyAllFilters();
     } catch(e) { showToast('Failed to create ticket', 'var(--issue)'); }
