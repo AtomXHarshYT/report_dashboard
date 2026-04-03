@@ -44,10 +44,10 @@ function render(data) {
         <tr>
             <td>${t.date}</td>
             <td>${t.ticket_id || "-"}</td>
-            <td>${t.rest_ids.join(",")}</td>
-            <td>${t.vendor_ids.join(",")}</td>
+            <td>${(t.rest_ids || []).join(",")}</td>
+            <td>${(t.vendor_ids || []).join(",")}</td>
             <td>${t.status}</td>
-            <td>${t.remarks.join(",")}</td>
+            <td>${(t.remarks || []).join(",")}</td>
             <td>
                 <button onclick="edit('${t.id}', this)">Edit</button>
                 <button onclick="del('${t.id}')">Delete</button>
