@@ -592,7 +592,8 @@
 
     async function performLogin(empId, pwd) {
       // actual POST to the given endpoint
-      const url = "http://127.0.0.1:8000/login";
+      const API = "https://report-dashboard-o8us.onrender.com";
+      const url = `${API}/login`;
       const requestBody = { employee_id: empId, password: pwd };
 
       try {
@@ -616,9 +617,7 @@
         // demo logic: accept any non-empty empId and password length > 3 for demo
         if (empId.trim().length > 0 && pwd.trim().length >= 3) {
           // mock success - store fake token
-          const mockUser = { employee_id: empId, name: "Demo User", token: "demo_jwt_token" };
-          localStorage.setItem("user", JSON.stringify(mockUser));
-          return { success: true, redirect: true };
+          return { success: false, message: "Server not reachable" };
         } else {
           return { success: false, message: "Demo mode: ID required & password min 3 chars" };
         }
