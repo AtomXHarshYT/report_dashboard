@@ -6,6 +6,10 @@ class LoginModel(BaseModel):
     employee_id: str
     password: str
 
+class AggregatorItem(BaseModel):
+    name: str
+    type: str
+
 class TicketCreate(BaseModel):
     user_id: str
     date: datetime.date
@@ -14,6 +18,7 @@ class TicketCreate(BaseModel):
     vendor_ids: List[str]
     status: str
     remarks: List[str]
+    aggregators: Optional[List[AggregatorItem]] = None
 
 class TicketUpdate(BaseModel):
     date: Optional[datetime.date] = None
@@ -22,3 +27,4 @@ class TicketUpdate(BaseModel):
     vendor_ids: Optional[List[str]] = None
     status: Optional[str] = None
     remarks: Optional[List[str]] = None
+    aggregators: Optional[List[AggregatorItem]] = None

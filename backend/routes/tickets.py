@@ -3,6 +3,8 @@ from database import get_connection
 from ws_manager import manager
 from models import TicketCreate, TicketUpdate
 import uuid
+from typing import List
+import json
 
 router = APIRouter()
 
@@ -13,7 +15,7 @@ def get_tickets(user_id: str, role: str):
 
     # 🔒 Always filter by user_id (even for admin)
     cur.execute("""
-        SELECT id, date, ticket_id, rest_ids, vendor_ids, status, remarks
+        SELECT id, date, ticket_id, rest_ids, vendor_ids, status, remarks, aggregators
         FROM tickets
         WHERE user_id=%s
         ORDER BY created_at DESC
@@ -30,7 +32,8 @@ def get_tickets(user_id: str, role: str):
             "rest_ids": row[3] if row[3] else [],
             "vendor_ids": row[4] if row[4] else [],
             "status": row[5],
-            "remarks": row[6] if row[6] else []
+            "remarks": row[6] if row[6] else [],
+            "aggregators": row[7] if isinstance(row[7], list) else (json.loads(row[7]) if row[7] else [])
         })
 
     cur.close()
@@ -49,8 +52,8 @@ async def create_ticket(data: TicketCreate):
     new_id = str(uuid.uuid4())
 
     cur.execute("""
-        INSERT INTO tickets (id, user_id, date, ticket_id, rest_ids, vendor_ids, status, remarks)
-        VALUES (%s, %s::uuid, %s, %s, %s, %s, %s, %s)
+        INSERT INTO tickets (id, user_id, date, ticket_id, rest_ids, vendor_ids, status, remarks, aggregators)
+        VALUES (%s, %s::uuid, %s, %s, %s, %s, %s, %s, %s)
     """, (
         new_id,
         data.user_id,
@@ -59,7 +62,8 @@ async def create_ticket(data: TicketCreate):
         data.rest_ids,
         data.vendor_ids,
         data.status,
-        data.remarks
+        data.remarks,
+        json.dumps([a.dict() for a in data.aggregators] if data.aggregators else [])
     ))
 
     conn.commit()
@@ -100,6 +104,10 @@ async def update_ticket(id: str, data: TicketUpdate):
         update_fields.append("status=%s")
         values.append(data.status)
 
+    if data.aggregators is not None:
+        update_fields.append("aggregators=%s")
+        values.append(json.dumps([a.dict() for a in data.aggregators]))
+    
     if data.remarks is not None:
         update_fields.append("remarks=%s")
         values.append(data.remarks)
@@ -136,3 +144,36 @@ async def delete_ticket(id: str):
     conn.close()
     await manager.broadcast("tickets_updated")
     return {"message": "deleted"}
+
+@router.post("/tickets/bulk")
+async def bulk_upload(data: List[TicketCreate]):
+    conn = get_connection()
+    cur = conn.cursor()
+
+    for d in data:
+        cur.execute("""
+            INSERT INTO tickets (
+                id, user_id, date, ticket_id,
+                rest_ids, vendor_ids, status, remarks,
+                aggregators
+            )
+            VALUES (%s, %s::uuid, %s, %s, %s, %s, %s, %s, %s)
+        """, (
+            str(uuid.uuid4()),
+            d.user_id,
+            d.date,
+            d.ticket_id,
+            d.rest_ids,
+            d.vendor_ids,
+            d.status,
+            d.remarks,
+            json.dumps([a.dict() for a in d.aggregators])
+        ))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    await manager.broadcast("tickets_updated")
+
+    return {"message": "bulk upload success"}

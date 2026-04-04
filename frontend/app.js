@@ -138,6 +138,50 @@ async function del(id) {
     loadTickets();
 }
 
+async function handleCSVUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const text = await file.text();
+    const lines = text.split("\n").filter(l => l.trim());
+
+    const headers = lines[0].split(",").map(h => h.trim());
+
+    const data = [];
+
+    for (let i = 1; i < lines.length; i++) {
+        const row = lines[i].split(",").map(v => v.replace(/"/g, "").trim());
+
+        const obj = {};
+        headers.forEach((h, idx) => obj[h] = row[idx]);
+
+        data.push({
+            user_id: currentUser.id,
+            date: obj["Date"],
+            ticket_id: obj["Ticket ID"] || null,
+            rest_ids: obj["Rest IDs"] ? obj["Rest IDs"].split(",") : [],
+            vendor_ids: obj["Vendor IDs"] ? obj["Vendor IDs"].split(",") : [],
+            status: obj["Status"],
+            remarks: obj["Remarks"] ? obj["Remarks"].split(",") : [],
+            aggregators: parseAggregators(obj["Aggregator"], obj["Type"])
+        });
+    }
+
+    try {
+        await fetch(`${API_BASE}/tickets/bulk`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+
+        showToast("Bulk upload success 🚀", "var(--done)");
+        fetchTickets();
+
+    } catch (e) {
+        showToast("Upload failed", "var(--issue)");
+    }
+}
+
 // EDIT
 function edit(id, btn) {
     editId = id;
@@ -167,4 +211,28 @@ function applyFilter() {
 // OPEN FORM
 function openForm() {
     document.getElementById("formDiv").style.display = "block";
+}
+
+function triggerImport() {
+    document.getElementById("csvFile").click();
+}
+
+function parseAggregators(aggStr, typeStr) {
+    if (!aggStr || !typeStr) return [];
+
+    const names = aggStr.split(",").map(a => a.trim()).filter(Boolean);
+    const types = typeStr.split(",").map(t => t.trim()).filter(Boolean);
+
+    const result = [];
+
+    names.forEach(name => {
+        types.forEach(type => {
+            result.push({
+                name: name,
+                type: type
+            });
+        });
+    });
+
+    return result;
 }

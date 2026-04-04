@@ -4,6 +4,7 @@ from routes.auth import router as auth_router
 from routes.tickets import router as tickets_router
 from ws_manager import manager
 
+
 app = FastAPI()
 
 app.add_middleware(
