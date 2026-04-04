@@ -145,12 +145,13 @@ async function handleCSVUpload(event) {
     const text = await file.text();
     const lines = text.split("\n").filter(l => l.trim());
 
-    const headers = lines[0].split(",").map(h => h.trim());
+    const delimiter = lines[0].includes("\t") ? "\t" : ",";
+    const headers = lines[0].split(delimiter).map(h => h.trim());
     const user = JSON.parse(localStorage.getItem("user"));
     const data = [];
 
     for (let i = 1; i < lines.length; i++) {
-        const row = lines[i].split(",").map(v => v.replace(/"/g, "").trim());
+        const row = lines[i].split(delimiter).map(v => v.replace(/"/g, "").trim());
 
         const obj = {};
         headers.forEach((h, idx) => obj[h] = row[idx]);
