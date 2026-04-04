@@ -466,6 +466,10 @@
 
 <script>
   (function() {
+
+    const API = location.hostname === "localhost"
+      ? "http://127.0.0.1:8000"
+      : "https://report-dashboard-o8us.onrender.com";
     // ---------------------------
     // 1. Particles generation (subtle animated background)
     // ---------------------------
@@ -592,7 +596,6 @@
 
     async function performLogin(empId, pwd) {
       // actual POST to the given endpoint
-      const API = "https://report-dashboard-o8us.onrender.com";
       const url = `${API}/login`;
       const requestBody = { employee_id: empId, password: pwd };
 
@@ -700,11 +703,6 @@
         setLoading(false, originalText);
         showErrorMessage("Connection error. Please try again later.");
         isLoading = false;
-      } finally {
-        // if loading ended but redirect didn't happen, ensure button reset
-        if (!result?.success) {
-          isLoading = false;
-        }
       }
     }
 

@@ -2213,7 +2213,7 @@
 
     <script>
         /* ===== Config ===== */
-        const API_BASE = "http://127.0.0.1:8000";
+        const API_BASE = "https://report-dashboard-o8us.onrender.com";
         const PER_PAGE = 12;
         const AUTO_REFRESH_MS = 30000;
 
@@ -2589,7 +2589,7 @@
 
             function showDropdown(query) {
                 const q = query.toLowerCase().trim();
-                let filtered = options.filter(o => o.toLowerCase().includes(q) && !selectedArr.includes(o));
+                let filtered = options.filter(o => o.toLowerCase().includes(q));
 
                 if (q && !options.some(o => o.toLowerCase() === q) && !selectedArr.includes(query.trim())) {
                     filtered.push(query.trim());
@@ -2604,7 +2604,12 @@
 
                     html += filtered.map((o, i) => {
                         const isNew = !options.includes(o);
-                        return `<div class="ac-option" data-idx="${i}" data-val="${esc(o)}"><span>${esc(o)}</span>${isNew ? '<span class="ac-new-badge">new</span>' : ''}</div>`;
+                        const isSelected = selectedArr.includes(o);
+
+                        return `<div class="ac-option ${isSelected ? 'hl' : ''}" data-idx="${i}" data-val="${esc(o)}">
+                            <span>${esc(o)} ${isSelected ? '✓' : ''}</span>
+                            ${isNew ? '<span class="ac-new-badge">new</span>' : ''}
+                        </div>`;
                     }).join('');
 
                     dropdown.innerHTML = html;
@@ -2619,11 +2624,15 @@
             }
 
             function selectOption(val) {
-                if (!val || selectedArr.includes(val)) return;
-                selectedArr.push(val);
+                if (!val) return;
+
+                if (!selectedArr.includes(val)) {
+                    selectedArr.push(val);
+                }
+
                 input.value = '';
                 renderTags();
-                hideDropdown();
+                showDropdown(''); // <-- important (refresh instead of hiding)
                 input.focus();
             }
 
@@ -3080,14 +3089,36 @@
                         No tickets recorded for <b>${today}</b>
                     </div>`;
             } else {
-                let html = `<div style="margin-bottom:0.75rem;font-size:0.82rem;color:var(--text-3)"><i class="far fa-calendar-alt"></i> <b style="color:var(--text-1)">${today}</b> · ${todayT.length} ticket(s)</div>`;
+                const uniqueTickets = new Set(todayT.map(t => t.ticket_id || t.id));
+
+                let html = `<div style="margin-bottom:0.75rem;font-size:0.82rem;color:var(--text-3)">
+                    <i class="far fa-calendar-alt"></i> 
+                    <b style="color:var(--text-1)">${today}</b> 
+                    · Total Tickets: <b style="color:var(--accent)">${uniqueTickets.size}</b>
+                </div>`;
                 Object.keys(report).forEach(agg => {
-                    html += `<div class="report-section">
-                        <div class="report-agg-name">${agg}</div>
-                        <div class="report-row"><span>Integration</span><span style="color:var(--done);font-weight:600">${report[agg].Integration}</span></div>
-                        <div class="report-row"><span>Disintegration</span><span style="color:var(--pending);font-weight:600">${report[agg].Disintegration}</span></div>
-                        <div class="report-row"><span>Issue</span><span style="color:var(--issue);font-weight:600">${report[agg].Issue}</span></div>
-                    </div>`;
+                    const data = report[agg];
+
+                    if (data.Integration > 0) {
+                        html += `<div class="report-row">
+                            <span>${agg} Integration</span>
+                            <span style="color:var(--done);font-weight:600">${String(data.Integration).padStart(2,'0')}</span>
+                        </div>`;
+                    }
+
+                    if (data.Disintegration > 0) {
+                        html += `<div class="report-row">
+                            <span>${agg} Disintegration</span>
+                            <span style="color:var(--pending);font-weight:600">${String(data.Disintegration).padStart(2,'0')}</span>
+                        </div>`;
+                    }
+
+                    if (data.Issue > 0) {
+                        html += `<div class="report-row">
+                            <span>${agg} Issue</span>
+                            <span style="color:var(--issue);font-weight:600">${String(data.Issue).padStart(2,'0')}</span>
+                        </div>`;
+                    }
                 });
                 document.getElementById('reportContent').innerHTML = html;
             }

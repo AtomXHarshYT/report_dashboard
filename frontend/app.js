@@ -146,7 +146,7 @@ async function handleCSVUpload(event) {
     const lines = text.split("\n").filter(l => l.trim());
 
     const headers = lines[0].split(",").map(h => h.trim());
-
+    const user = JSON.parse(localStorage.getItem("user"));
     const data = [];
 
     for (let i = 1; i < lines.length; i++) {
@@ -156,7 +156,7 @@ async function handleCSVUpload(event) {
         headers.forEach((h, idx) => obj[h] = row[idx]);
 
         data.push({
-            user_id: currentUser.id,
+            user_id: user.id,
             date: obj["Date"],
             ticket_id: obj["Ticket ID"] || null,
             rest_ids: obj["Rest IDs"] ? obj["Rest IDs"].split(",") : [],
@@ -168,14 +168,14 @@ async function handleCSVUpload(event) {
     }
 
     try {
-        await fetch(`${API_BASE}/tickets/bulk`, {
+        await fetch(`${API}/tickets/bulk`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data)
         });
 
         showToast("Bulk upload success 🚀", "var(--done)");
-        fetchTickets();
+        loadTickets();
 
     } catch (e) {
         showToast("Upload failed", "var(--issue)");
