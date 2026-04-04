@@ -83,24 +83,6 @@
             transition: background 0.4s, color 0.4s;
         }
 
-        /* Background Effects */
-        .bg-grid {
-            position: fixed;
-            inset: 0;
-            background-image: linear-gradient(var(--grid-color) 1px, transparent 1px),
-                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
-            background-size: 60px 60px;
-            pointer-events: none;
-            z-index: 0;
-            animation: gridShift 25s linear infinite;
-        }
-
-        @keyframes gridShift {
-            to {
-                transform: translate(60px, 60px);
-            }
-        }
-
         .floating-particles {
             position: fixed;
             inset: 0;
@@ -493,27 +475,44 @@
             background: var(--bg-input);
             border: 1px solid var(--border);
             border-radius: 0.75rem;
-            padding: 0.5rem 0.7rem;
+            padding: 0.5rem 2rem 0.5rem 0.7rem;
             color: var(--text-1);
             font-family: 'Inter';
             font-size: 0.8rem;
             outline: none;
             cursor: pointer;
-            transition: 0.2s;
+            transition: all 0.2s;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%235c6e85' viewBox='0 0 16 16'%3E%3Cpath d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.7rem center;
+        }
+
+        .f-select:hover {
+            border-color: rgba(0, 204, 255, 0.4);
         }
 
         .f-select:focus {
             border-color: var(--accent);
+            box-shadow: 0 0 8px var(--accent-glow);
         }
 
         .f-select option {
-            background: #0a0f1e;
+            background: #0c1220;
             color: #eef5ff;
+            padding: 8px 12px;
+            border-radius: 4px;
         }
 
         body.light-mode .f-select option {
             background: #f0f4ff;
             color: #1a2a4a;
+        }
+
+        body.light-mode .f-select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238a9ab0' viewBox='0 0 16 16'%3E%3Cpath d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
         }
 
         .filter-sub {
@@ -543,11 +542,100 @@
             font-family: 'Inter';
             font-size: 0.78rem;
             outline: none;
-            transition: 0.2s;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .f-date:hover {
+            border-color: rgba(0, 204, 255, 0.4);
         }
 
         .f-date:focus {
             border-color: var(--accent);
+            box-shadow: 0 0 8px var(--accent-glow);
+        }
+
+        .f-date::-webkit-calendar-picker-indicator {
+            filter: invert(0.7) sepia(1) saturate(3) hue-rotate(160deg);
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        .f-date::-webkit-calendar-picker-indicator:hover {
+            opacity: 1;
+        }
+
+        .f-date::-webkit-datetime-edit {
+            color: var(--text-3);
+        }
+
+        .f-date::-webkit-datetime-edit-fields-wrapper {
+            color: var(--text-1);
+        }
+
+        body.light-mode .f-date::-webkit-calendar-picker-indicator {
+            filter: invert(0.3) sepia(0.5) saturate(3) hue-rotate(190deg);
+        }
+
+        /* ── Native Control Theming ── */
+        .f-date,
+        .f-select,
+        .input-group input[type="date"],
+        .input-group select {
+            color-scheme: dark;
+        }
+
+        .f-date option,
+        .f-select option,
+        .input-group select option {
+            color-scheme: dark;
+        }
+
+        body.light-mode .f-date,
+        body.light-mode .f-select,
+        body.light-mode .input-group input[type="date"],
+        body.light-mode .input-group select {
+            color-scheme: light;
+        }
+
+        body.light-mode .f-date option,
+        body.light-mode .f-select option,
+        body.light-mode .input-group select option {
+            color-scheme: light;
+        }
+
+        /* Date input: hide default placeholder, show themed one */
+        .f-date:invalid,
+        .input-group input[type="date"]:invalid {
+            color: transparent;
+        }
+
+        .f-date:invalid::-webkit-datetime-edit,
+        .input-group input[type="date"]:invalid::-webkit-datetime-edit {
+            color: transparent;
+        }
+
+        /* Themed placeholder via wrapper */
+        .date-wrap {
+            position: relative;
+        }
+
+        .date-wrap .date-ph {
+            position: absolute;
+            left: 0.65rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.78rem;
+            color: var(--text-3);
+            pointer-events: none;
+            font-family: 'Inter', sans-serif;
+            transition: opacity 0.15s;
+        }
+
+        .date-wrap input[type="date"]:not(:invalid)~.date-ph,
+        .date-wrap input[type="date"]:focus~.date-ph {
+            opacity: 0;
         }
 
         .filter-actions {
@@ -651,6 +739,16 @@
             }
         }
 
+        .tickets-grid {
+            position: relative;
+            z-index: 1;
+        }
+
+        .filter-panel {
+            position: relative;
+            z-index: 100;
+        }
+
         /* Dropdown Menu */
         .dropdown-wrap {
             position: relative;
@@ -706,30 +804,6 @@
             color: var(--text-1);
         }
 
-        /* ── Add Form ── */
-        .form-panel {
-            background: var(--bg-card);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--border);
-            border-radius: 1rem;
-            padding: 1.25rem;
-            margin-bottom: 1rem;
-            box-shadow: 0 8px 24px var(--shadow);
-            animation: slideDown 0.25s ease;
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
         .form-title {
             font-size: 0.9rem;
             font-weight: 600;
@@ -770,6 +844,48 @@
             outline: none;
         }
 
+        .input-group input[type="date"] {
+            cursor: pointer;
+        }
+
+        .input-group input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(0.7) sepia(1) saturate(3) hue-rotate(160deg);
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        .input-group input[type="date"]::-webkit-calendar-picker-indicator:hover {
+            opacity: 1;
+        }
+
+        .input-group input[type="date"]::-webkit-datetime-edit {
+            color: var(--text-3);
+        }
+
+        .input-group input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+            color: var(--text-1);
+        }
+
+        .input-group select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            padding: 0.6rem 2rem 0.6rem 0.85rem;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%235c6e85' viewBox='0 0 16 16'%3E%3Cpath d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.85rem center;
+            cursor: pointer;
+        }
+
+        body.light-mode .input-group input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(0.3) sepia(0.5) saturate(3) hue-rotate(190deg);
+        }
+
+        body.light-mode .input-group select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238a9ab0' viewBox='0 0 16 16'%3E%3Cpath d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+        }
+
         .input-group textarea {
             resize: vertical;
             min-height: 48px;
@@ -804,22 +920,6 @@
         body.light-mode .input-group select option {
             background: #f0f4ff;
             color: #1a2a4a;
-        }
-
-        .input-group select[multiple] {
-            height: 100px;
-            padding: 0.4rem;
-            overflow-y: auto;
-        }
-
-        .input-group select[multiple] option {
-            padding: 5px 8px;
-            border-radius: 4px;
-        }
-
-        .input-group select[multiple] option:checked {
-            background: var(--accent);
-            color: #000;
         }
 
         .agg-row {
@@ -1831,7 +1931,6 @@
 </head>
 
 <body>
-    <div class="bg-grid"></div>
     <div class="floating-particles" id="particlesContainer"></div>
 
     <div class="dashboard-container">
@@ -1915,11 +2014,20 @@
 
             <div class="filter-sub">
                 <span class="f-label">Month</span>
-                <input type="month" id="monthFilter" class="f-date" aria-label="Month">
+                <div class="date-wrap">
+                    <input type="month" id="monthFilter" class="f-date" aria-label="Month">
+                    <span class="date-ph">YYYY-MM</span>
+                </div>
                 <span class="f-label" style="margin-left:0.5rem">From</span>
-                <input type="date" id="startDate" class="f-date" aria-label="Start date">
+                <div class="date-wrap">
+                    <input type="date" id="startDate" class="f-date" aria-label="Start date">
+                    <span class="date-ph">dd-mm-yyyy</span>
+                </div>
                 <span class="f-label">To</span>
-                <input type="date" id="endDate" class="f-date" aria-label="End date">
+                <div class="date-wrap">
+                    <input type="date" id="endDate" class="f-date" aria-label="End date">
+                    <span class="date-ph">dd-mm-yyyy</span>
+                </div>
             </div>
 
             <div class="filter-actions">
@@ -2003,7 +2111,12 @@
                 <button class="close-btn" onclick="closeEditModal()" aria-label="Close">&times;</button>
             </div>
             <div class="form-grid">
-                <div class="input-group"><label>Date</label><input type="date" id="e_date"></div>
+                <div class="input-group"><label>Date</label>
+                    <div class="date-wrap" style="width:100%">
+                        <input type="date" id="e_date" class="f-date" style="width:100%" aria-label="Ticket date">
+                        <span class="date-ph">dd-mm-yyyy</span>
+                    </div>
+                </div>
                 <div class="input-group"><label>Ticket ID</label><input type="text" id="e_ticket_id"></div>
                 <div class="input-group"><label>Status</label>
                     <select id="e_status">
@@ -2040,7 +2153,12 @@
                 <button class="close-btn" onclick="closeAddModal()">&times;</button>
             </div>
             <div class="form-grid" style="grid-template-columns: repeat(2, 1fr);">
-                <div class="input-group"><label>Date *</label><input type="date" id="f_date" style="width:100%"></div>
+                <div class="input-group"><label>Date *</label>
+                    <div class="date-wrap" style="width:100%">
+                        <input type="date" id="f_date" class="f-date" style="width:100%" aria-label="Ticket date">
+                        <span class="date-ph">dd-mm-yyyy</span>
+                    </div>
+                </div>
                 <div class="input-group"><label>Ticket ID (opt)</label><input type="text" id="f_ticket_id"
                         placeholder="Auto if empty"></div>
                 <div class="input-group"><label>Status</label>
@@ -2653,12 +2771,6 @@
         document.addEventListener('click', closeStatusDropdown);
 
         /* ===== CRUD ===== */
-        function openForm() {
-            const d = document.getElementById('formDiv');
-            const show = d.style.display === 'none';
-            d.style.display = show ? 'block' : 'none';
-            if (show) document.getElementById('f_date').value = new Date().toISOString().slice(0, 10);
-        }
 
         async function saveTicket() {
             const date = document.getElementById('f_date').value;
