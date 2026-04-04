@@ -220,19 +220,19 @@ function triggerImport() {
 function parseAggregators(aggStr, typeStr) {
     if (!aggStr || !typeStr) return [];
 
-    const names = aggStr.split(",").map(a => a.trim()).filter(Boolean);
-    const types = typeStr.split(",").map(t => t.trim()).filter(Boolean);
+    const names = aggStr.split(",").map(a => a.trim());
+    const types = typeStr.split(",").map(t => t.trim());
 
     const result = [];
 
-    names.forEach(name => {
-        types.forEach(type => {
+    for (let i = 0; i < names.length; i++) {
+        if (names[i] && types[i]) {
             result.push({
-                name: name,
-                type: type
+                name: names[i],
+                type: types[i]
             });
-        });
-    });
+        }
+    }
 
     return result;
 }

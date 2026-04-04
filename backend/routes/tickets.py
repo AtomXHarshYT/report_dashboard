@@ -167,7 +167,7 @@ async def bulk_upload(data: List[TicketCreate]):
             d.vendor_ids,
             d.status,
             d.remarks,
-            json.dumps([a.dict() for a in d.aggregators])
+            json.dumps([a.dict() for a in d.aggregators] if d.aggregators else [])
         ))
 
     conn.commit()
