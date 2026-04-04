@@ -3003,16 +3003,20 @@
 
         function downloadSampleCSV() {
             const h = ["Date", "Ticket ID", "Rest IDs", "Vendor IDs", "Status", "Remarks", "Aggregator", "Type"];
+
             const rows = [
                 ["2026-04-01", "TIX-0001", "REST1", "VEN1", "Done", "ok", "Zomato", "Integration"],
                 ["2026-04-01", "TIX-0002", "REST2", "VEN2", "Pending", "issue", "Swiggy", "Issue"],
-                ["2026-04-01", "TIX-0003", "REST3", "VEN3", "Done", "ok", "Zomato,Swiggy", "Integration,Issue"]
+                ["2026-04-01", "TIX-0003", "REST3", "VEN3", "Done", "ok", "\"Zomato,Swiggy\"", "\"Integration,Issue\""]
             ];
+
             const csv = [h.join(','), ...rows.map(r => r.join(','))].join('\n');
-            const blob = new Blob([csv], { type: 'text/csv' });
+
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = 'sample_format.csv'; a.click();
+            a.download = 'sample_format.csv';
+            a.click();
         }
 
         /* ===== Auto Refresh ===== */
